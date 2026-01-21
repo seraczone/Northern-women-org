@@ -4757,7 +4757,7 @@ const summitImage =
   "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/summit-event.jpg";
 
 const highlightVideo =
-  "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/event-highlight.mp4";
+  "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/nsvideo.mp4";
 
 /* ================= PROGRAMS ================= */
 const programs = [
