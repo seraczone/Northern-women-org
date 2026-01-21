@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Facebook, Instagram, MapPin, Phone } from "lucide-react";
+import { Facebook, Instagram, Mail, MapPin, Phone, } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import logo from "@/assets/logo.png";
@@ -111,15 +111,21 @@ const Footer = () => {
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
                 <MapPin size={20} className="mt-1 flex-shrink-0 text-secondary" />
-                <span className="text-primary-foreground/80">No 206, Maitama Mall, Abuja</span>
+                <span className="text-primary-foreground/80">
+                No 206, Maitama Mall, Abuja. <br />
+                Scotlant, United Kingdom.
+                </span> 
               </li>
               <li className="flex items-start gap-3">
                 <Phone size={20} className="mt-1 flex-shrink-0 text-secondary" />
                 <span className="text-primary-foreground/80">
-                  +447793012771 <br />
-                  +2349067379828 <br />
-                  +2348034139428
+                  +234 906 737 9828 <br />
+                  +447793012771
                 </span>
+              </li>
+               <li className="flex items-start gap-3">
+                <Mail size={20} className="mt-1 flex-shrink-0 text-secondary" />
+                <span className="text-primary-foreground/80">Northernwomen001@gmail.com</span>
               </li>
             </ul>
           </div>

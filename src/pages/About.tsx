@@ -418,7 +418,7 @@ const About = () => {
                 <p>
                   Our journey began with the Northern Women Meet & Greet in June, followed by our 
                   gathering that brought together women from all walks of life — entrepreneurs,
-                  first major summit, Northern Women's Summer 2025, held on 1st November in Nigeria.
+                  first major summit, Northern Women's Summit 2025, held on 1st November in Nigeria.
                   I travelled from the UK to attend personally, as this work is deeply personal to	
                   me. Over 500 women participated, making it a historic and powerful moment of unity,  
                   learning, and hope. By the will of Allah, this summit will be held annually.

@@ -686,7 +686,7 @@ import Layout from "@/components/layout/Layout";
 
 // Founder
 const founderMember = {
-  name: "Mrs. MARIAM MOHAMMED NASIR",
+  name: "Mrs. MARYAM MOHAMMED NASIR",
   role: "Founder",
   image: "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/founder.jpg",
 };
@@ -694,43 +694,58 @@ const founderMember = {
 // Other Team Members
 const teamMembers = [
   {
+    name: "AMB. ZAINAB BELLO MAHMOOD",
+    role: "TRUSTEE",
+    image: "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/Amb.jpg",
+  },
+  {
+    name: "AHMAD SA'AD",
+    role: "TRUSTEE",
+    image: "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/Ahmad.jpg",
+  },
+  {
+    name: "ALI MUHAMMAD SA'AD",
+    role: "Secretary",
+    image: "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/Ali.jpg",
+  },
+  {
     name: "KARIMA ZAILANI",
-    role: "PA to the Founder",
+    role: "Program Lead",
     image: "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/karima.jpg",
   },
   {
     name: "BADRIYYA KALARAWI",
-    role: "Journalist, BBC",
+    role: "NW Events Team",
     image: "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/badriyya.jpg",
   },
   {
     name: "JAMILA MUSA AHAYA",
-    role: "CEO, Baljam Ventures",
+    role: "NW Events Team",
     image: "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/jamila.jpg",
   },
   {
     name: "AMINAH HAMZA",
-    role: "CEO, Amis Army Concept",
+    role: "NW Events Team",
     image: "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/aminah.jpg",
   },
   {
     name: "RUKAYYA GURAMA",
-    role: "CEO, Baby Blossom",
+    role: "NW Events Team",
     image: "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/rukayya.jpg",
   },
   {
     name: "AISHA MOHAMMED GALADIMA",
-    role: "XXXXXXXXXXX",
+    role: "NW Events Team",
     image: "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/aisha.jpg",
   },
   {
     name: "SADIYA ZAILANI",
-    role: "Founder, Lazeez Pops",
+    role: "NW Events Team",
     image: "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/sadiya.jpg",
   },
   {
     name: "Dr. HAUWA MUSTAPHA BABURA",
-    role: "XXXXXXXX",
+    role: "NW Events Team",
     image: "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/hauwa.jpg",
   },
 ];
