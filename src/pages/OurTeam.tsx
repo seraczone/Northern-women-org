@@ -27,65 +27,65 @@ const trustees = [
   },
 ];
 
-/* ================= OTHER MEMBERS ================= */
-const otherMembers = [
-  {
-    name: "ALI MUHAMMAD SA'AD",
-    role: "Secretary",
-    image:
-      "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/Ali.jpg",
-  },
-  {
-    name: "KARIMA ZAILANI",
-    role: "Program Lead",
-    image:
-      "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/karima.jpg",
-  },
-  {
-    name: "BADRIYYA KALARAWI",
-    role: "NW Events Team",
-    image:
-      "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/badriyya.jpg",
-  },
-  {
-    name: "JAMILA MUSA AHAYA",
-    role: "NW Events Team",
-    image:
-      "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/jamila.jpg",
-    objectPosition: "center 18%",
-  },
-  {
-    name: "AMINAH HAMZA",
-    role: "NW Events Team",
-    image:
-      "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/aminah.jpg",
-  },
-  {
-    name: "RUKAYYA GURAMA",
-    role: "NW Events Team",
-    image:
-      "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/rukayya.jpg",
-  },
-  {
-    name: "AISHA MOHAMMED GALADIMA",
-    role: "NW Events Team",
-    image:
-      "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/aisha.jpg",
-  },
-  {
-    name: "SADIYA ZAILANI",
-    role: "NW Events Team",
-    image:
-      "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/sadiya.jpg",
-  },
-  {
-    name: "Dr. HAUWA MUSTAPHA BABURA",
-    role: "NW Events Team",
-    image:
-      "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/hauwa.jpg",
-    objectPosition: "center 12%",
-  },
-];
+// /* ================= OTHER MEMBERS ================= */
+// const otherMembers = [
+//   {
+//     name: "ALI MUHAMMAD SA'AD",
+//     role: "Secretary",
+//     image:
+//       "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/Ali.jpg",
+//   },
+//   {
+//     name: "KARIMA ZAILANI",
+//     role: "Program Lead",
+//     image:
+//       "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/karima.jpg",
+//   },
+//   {
+//     name: "BADRIYYA KALARAWI",
+//     role: "NW Events Team",
+//     image:
+//       "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/badriyya.jpg",
+//   },
+//   {
+//     name: "JAMILA MUSA AHAYA",
+//     role: "NW Events Team",
+//     image:
+//       "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/jamila.jpg",
+//     objectPosition: "center 18%",
+//   },
+//   {
+//     name: "AMINAH HAMZA",
+//     role: "NW Events Team",
+//     image:
+//       "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/aminah.jpg",
+//   },
+//   {
+//     name: "RUKAYYA GURAMA",
+//     role: "NW Events Team",
+//     image:
+//       "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/rukayya.jpg",
+//   },
+//   {
+//     name: "AISHA MOHAMMED GALADIMA",
+//     role: "NW Events Team",
+//     image:
+//       "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/aisha.jpg",
+//   },
+//   {
+//     name: "SADIYA ZAILANI",
+//     role: "NW Events Team",
+//     image:
+//       "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/sadiya.jpg",
+//   },
+//   {
+//     name: "Dr. HAUWA MUSTAPHA BABURA",
+//     role: "NW Events Team",
+//     image:
+//       "https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/hauwa.jpg",
+//     objectPosition: "center 12%",
+//   },
+// ];
 
 export default function OurTeam() {
   return (
@@ -165,7 +165,7 @@ export default function OurTeam() {
           ))}
         </div>
 
-        {/* OTHER MEMBERS */}
+        {/* OTHER MEMBERS
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-14">
           {otherMembers.map((member, i) => (
             <motion.div
@@ -192,7 +192,7 @@ export default function OurTeam() {
               <p className="text-gray-600">{member.role}</p>
             </motion.div>
           ))}
-        </div>
+        </div> */}
       </section>
     </Layout>
   );
