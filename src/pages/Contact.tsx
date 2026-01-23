@@ -1452,10 +1452,10 @@ const Contact = () => {
                   <div>
                     <h3 className="font-semibold">Email</h3>
                     <a
-                      href="mailto:ogunmodederidwan@gmail.com"
+                      href="mailto:Northernwomen001@gmail.com"
                       className="text-muted-foreground hover:text-primary transition-colors"
                     >
-                      ogunmodederidwan@gmail.com
+                      Northernwomen001@gmail.com
                     </a>
                   </div>
                 </div>
