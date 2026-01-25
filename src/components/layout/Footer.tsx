@@ -112,8 +112,7 @@ const Footer = () => {
               <li className="flex items-start gap-3">
                 <MapPin size={20} className="mt-1 flex-shrink-0 text-secondary" />
                 <span className="text-primary-foreground/80">
-                No 206, Maitama Mall, Abuja. <br />
-                Scotlant, United Kingdom.
+                No 206, Maitama Mall, Abuja.
                 </span> 
               </li>
               <li className="flex items-start gap-3">

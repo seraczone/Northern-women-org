@@ -1248,6 +1248,300 @@
 
 // export default Contact;
 
+// import React from "react";
+// import { supabase } from "@/lib/supabase";
+// import Layout from "@/components/layout/Layout";
+// import { Button } from "@/components/ui/button";
+// import { Input } from "@/components/ui/input";
+// import { Textarea } from "@/components/ui/textarea";
+// import {
+//   Mail,
+//   Phone,
+//   MapPin,
+//   Clock,
+//   Facebook,
+//   Instagram,
+//   Send,
+// } from "lucide-react";
+// import { useToast } from "@/hooks/use-toast";
+
+// const Contact = () => {
+//   const { toast } = useToast();
+
+//   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+//     e.preventDefault();
+
+//     const form = e.currentTarget;
+
+//     const formData = {
+//       first_name: (form.elements.namedItem("first_name") as HTMLInputElement)
+//         .value,
+//       last_name: (form.elements.namedItem("last_name") as HTMLInputElement)
+//         .value,
+//       email: (form.elements.namedItem("email") as HTMLInputElement).value,
+//       subject: (form.elements.namedItem("subject") as HTMLInputElement).value,
+//       message: (form.elements.namedItem("message") as HTMLTextAreaElement)
+//         .value,
+//     };
+
+//     // 1️⃣ Save to Supabase table
+//     const { error } = await supabase
+//       .from("contact_messages")
+//       .insert([formData]);
+
+//     if (error) {
+//       console.error(error);
+//       toast({
+//         title: "Message failed",
+//         description: "Something went wrong. Please try again.",
+//         variant: "destructive",
+//       });
+//       return;
+//     }
+
+//     // 2️⃣ Send email via Supabase Edge Function
+//     try {
+//       const response = await fetch(
+//         "https://ponlvomzjoxsfrrdzwqz.supabase.co/functions/v1/send-contact-email",
+//         {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//             "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+//           },
+//           body: JSON.stringify(formData),
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error(`Email sending failed with status ${response.status}`);
+//       }
+//     } catch (emailError) {
+//       console.error("Email sending failed:", emailError);
+//       toast({
+//         title: "Message saved, email failed",
+//         description:
+//           "Your message was saved, but the admin email could not be sent.",
+//         variant: "destructive",
+//       });
+//       form.reset();
+//       return;
+//     }
+
+//     toast({
+//       title: "Message sent!",
+//       description:
+//         "Thank you for reaching out. We'll respond within 24–48 hours.",
+//     });
+
+//     form.reset();
+//   };
+
+//   return (
+//     <Layout>
+//       {/* Hero Section */}
+//       <section className="bg-gradient-hero py-20">
+//         <div className="container-section">
+//           <div className="max-w-3xl">
+//             <span className="text-secondary font-medium text-sm uppercase tracking-wider">
+//               Contact Us
+//             </span>
+//             <h1 className="text-4xl md:text-5xl font-serif font-bold text-primary-foreground mt-3 mb-6">
+//               Get in Touch
+//             </h1>
+//             <p className="text-lg text-primary-foreground/90">
+//               We'd love to hear from you. Whether you have questions, ideas, or
+//               want to collaborate—reach out!
+//             </p>
+//           </div>
+//         </div>
+//       </section>
+
+//       {/* Contact Section */}
+//       <section className="section-padding bg-background">
+//         <div className="container-section">
+//           <div className="grid lg:grid-cols-2 gap-12">
+//             {/* Contact Form */}
+//             <div className="bg-card rounded-2xl p-8 shadow-card border border-border">
+//               <h2 className="text-2xl font-serif font-bold text-foreground mb-6">
+//                 Send Us a Message
+//               </h2>
+
+//               <form onSubmit={handleSubmit} className="space-y-6">
+//                 <div className="grid sm:grid-cols-2 gap-4">
+//                   <div>
+//                     <label className="text-sm font-medium mb-2 block">
+//                       First Name
+//                     </label>
+//                     <Input
+//                       name="first_name"
+//                       placeholder="Your first name"
+//                       required
+//                     />
+//                   </div>
+//                   <div>
+//                     <label className="text-sm font-medium mb-2 block">
+//                       Last Name
+//                     </label>
+//                     <Input
+//                       name="last_name"
+//                       placeholder="Your last name"
+//                       required
+//                     />
+//                   </div>
+//                 </div>
+
+//                 <div>
+//                   <label className="text-sm font-medium mb-2 block">
+//                     Email Address
+//                   </label>
+//                   <Input
+//                     name="email"
+//                     type="email"
+//                     placeholder="your@email.com"
+//                     required
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="text-sm font-medium mb-2 block">
+//                     Subject
+//                   </label>
+//                   <Input
+//                     name="subject"
+//                     placeholder="What is this about?"
+//                     required
+//                   />
+//                 </div>
+
+//                 <div>
+//                   <label className="text-sm font-medium mb-2 block">
+//                     Message
+//                   </label>
+//                   <Textarea
+//                     name="message"
+//                     placeholder="Tell us more about your inquiry..."
+//                     rows={5}
+//                     required
+//                   />
+//                 </div>
+
+//                 <Button
+//                   variant="gold"
+//                   size="lg"
+//                   type="submit"
+//                   className="w-full flex items-center justify-center gap-2"
+//                 >
+//                   Send Message
+//                   <Send size={18} />
+//                 </Button>
+//               </form>
+//             </div>
+
+//             {/* Contact Info */}
+//             <div>
+//               <h2 className="text-2xl font-serif font-bold mb-6">
+//                 Contact Information
+//               </h2>
+
+//               <div className="space-y-6">
+//                 <div className="flex items-start gap-4">
+//                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+//                     <Mail className="w-6 h-6 text-primary" />
+//                   </div>
+//                   <div>
+//                     <h3 className="font-semibold">Email</h3>
+//                     <a
+//                       href="mailto:Northernwomen001@gmail.com"
+//                       className="text-muted-foreground hover:text-primary transition-colors"
+//                     >
+//                       Northernwomen001@gmail.com
+//                     </a>
+//                   </div>
+//                 </div>
+
+//                 <div className="flex items-start gap-4">
+//                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+//                     <Phone className="w-6 h-6 text-primary" />
+//                   </div>
+//                   <div>
+//                     <h3 className="font-semibold">Phone</h3>
+//                     <p className="text-muted-foreground">
+//                       +234 906 737 9828 <br />
+//                       +44 7793 012771
+//                     </p>
+//                   </div>
+//                 </div>
+
+//                 <div className="flex items-start gap-4">
+//                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+//                     <MapPin className="w-6 h-6 text-primary" />
+//                   </div>
+//                   <div>
+//                     <h3 className="font-semibold">Location</h3>
+//                     <p className="text-muted-foreground">
+//                       No 206, Maitama Mall, Abuja.
+//                     </p>
+//                   </div>
+//                 </div>
+
+//                 <div className="flex items-start gap-4">
+//                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+//                     <Clock className="w-6 h-6 text-primary" />
+//                   </div>
+//                   <div>
+//                     <h3 className="font-semibold">Office Hours</h3>
+//                     <p className="text-muted-foreground">
+//                       Monday – Friday: 9:00 AM – 5:00 PM
+//                     </p>
+//                   </div>
+//                 </div>
+//               </div>
+
+//               {/* Social Links */}
+//               <div className="mt-10">
+//                 <h3 className="font-semibold mb-4">Follow Us</h3>
+//                 <div className="flex gap-4">
+//                   <a
+//                     href="https://facebook.com/your-page-name"
+//                     target="_blank"
+//                     rel="noopener noreferrer"
+//                     className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
+//                   >
+//                     <Facebook size={24} />
+//                   </a>
+
+//                   <a
+//                     href="https://www.instagram.com/northernwomen__?igsh=bDd1ZWFmOXhwcmpl"
+//                     target="_blank"
+//                     rel="noopener noreferrer"
+//                     className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
+//                   >
+//                     <Instagram size={24} />
+//                   </a>
+
+//                   <a
+//                     href="https://wa.me/2349067379828"
+//                     target="_blank"
+//                     rel="noopener noreferrer"
+//                     className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
+//                   >
+//                     <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
+//                       <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51z" />
+//                     </svg>
+//                   </a>
+//                 </div>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+//       </section>
+//     </Layout>
+//   );
+// };
+
+// export default Contact;
+
 import React from "react";
 import { supabase } from "@/lib/supabase";
 import Layout from "@/components/layout/Layout";
@@ -1284,13 +1578,13 @@ const Contact = () => {
         .value,
     };
 
-    // 1️⃣ Save to Supabase table
+    /* ✅ SAVE MESSAGE ONLY */
     const { error } = await supabase
       .from("contact_messages")
       .insert([formData]);
 
     if (error) {
-      console.error(error);
+      console.error("Contact insert error:", error);
       toast({
         title: "Message failed",
         description: "Something went wrong. Please try again.",
@@ -1299,39 +1593,11 @@ const Contact = () => {
       return;
     }
 
-    // 2️⃣ Send email via Supabase Edge Function
-    try {
-      const response = await fetch(
-        "https://ponlvomzjoxsfrrdzwqz.supabase.co/functions/v1/send-contact-email",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-          },
-          body: JSON.stringify(formData),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Email sending failed with status ${response.status}`);
-      }
-    } catch (emailError) {
-      console.error("Email sending failed:", emailError);
-      toast({
-        title: "Message saved, email failed",
-        description:
-          "Your message was saved, but the admin email could not be sent.",
-        variant: "destructive",
-      });
-      form.reset();
-      return;
-    }
-
+    /* ✅ SUCCESS */
     toast({
-      title: "Message sent!",
+      title: "Message sent successfully",
       description:
-        "Thank you for reaching out. We'll respond within 24–48 hours.",
+        "Thank you for reaching out. We'll get back to you shortly.",
     });
 
     form.reset();
@@ -1438,7 +1704,7 @@ const Contact = () => {
               </form>
             </div>
 
-            {/* Contact Info */}
+            {/* Contact Info (unchanged) */}
             <div>
               <h2 className="text-2xl font-serif font-bold mb-6">
                 Contact Information
@@ -1480,8 +1746,7 @@ const Contact = () => {
                   <div>
                     <h3 className="font-semibold">Location</h3>
                     <p className="text-muted-foreground">
-                      No 206, Maitama Mall, Abuja. <br />
-                      Scotland, United Kingdom.
+                      No 206, Maitama Mall, Abuja.
                     </p>
                   </div>
                 </div>
@@ -1519,17 +1784,6 @@ const Contact = () => {
                     className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
                   >
                     <Instagram size={24} />
-                  </a>
-
-                  <a
-                    href="https://wa.me/2349067379828"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
-                  >
-                    <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
-                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51z" />
-                    </svg>
                   </a>
                 </div>
               </div>
