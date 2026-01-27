@@ -570,7 +570,7 @@ const GetInvolved = () => {
                 <img
                   src={whatsappLogo}
                   alt="Join WhatsApp Group"
-                  className="w-20 h-20 mx-auto hover:scale-110 transition-transform duration-200"
+                  className="w-10 h-10 mx-auto hover:scale-110 transition-transform duration-200"
                 />
               </a>
             </div>
