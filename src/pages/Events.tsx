@@ -1468,7 +1468,7 @@ export default function Events() {
       {/* PREVIOUS EVENTS */}
       <section className="section-padding bg-background">
         <div className="container-section">
-          <h2 className="text-center text-4xl md:text-5xl font-serif font-bold mb-12">
+          <h2 className="text-center text-4xl md:text-5xl font-serif text-gold font-bold mb-12">
             Our Previous Events
           </h2>
 
