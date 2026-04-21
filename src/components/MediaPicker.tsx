@@ -1,90 +1,46 @@
-// import { useEffect, useState } from "react";
-// import { supabase } from "@/lib/supabase";
-// import { Button } from "@/components/ui/button";
+import { useEffect, useMemo, useState } from "react";
+import { RefreshCw } from "lucide-react";
 
-// interface MediaAsset {
-//   id: string;
-//   public_url: string;
-//   category: string | null;
-// }
-
-// export default function MediaPicker({
-//   category,
-//   onSelect,
-// }: {
-//   category?: string;
-//   onSelect: (url: string) => void;
-// }) {
-//   const [assets, setAssets] = useState<MediaAsset[]>([]);
-
-//   useEffect(() => {
-//     fetchAssets();
-//   }, []);
-
-//   const fetchAssets = async () => {
-//     let query = supabase.from("media_assets").select("*");
-
-//     if (category) query = query.eq("category", category);
-
-//     const { data } = await query.order("created_at", {
-//       ascending: false,
-//     });
-
-//     setAssets(data || []);
-//   };
-
-//   return (
-//     <div className="grid grid-cols-3 gap-4">
-//       {assets.map((asset) => (
-//         <button
-//           key={asset.id}
-//           onClick={() => onSelect(asset.public_url)}
-//           className="border rounded overflow-hidden hover:ring-2 ring-primary"
-//         >
-//           <img
-//             src={asset.public_url}
-//             className="h-24 w-full object-cover"
-//           />
-//         </button>
-//       ))}
-//     </div>
-//   );
-// }
-
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { listMediaFiles, type MediaFile } from "@/lib/media";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface MediaPickerProps {
-  selected?: string;
+  category?: string;
+  selected?: string | null;
   onSelect: (url: string) => void;
 }
 
 export default function MediaPicker({ selected, onSelect }: MediaPickerProps) {
-  const [media, setMedia] = useState<{ name: string; url: string }[]>([]);
+  const [media, setMedia] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [currentSelection, setCurrentSelection] = useState<string | undefined>(selected);
+  const [query, setQuery] = useState("");
+  const [currentSelection, setCurrentSelection] = useState<string | null>(selected ?? null);
 
-  const bucketName = "assets";
-
-  // Fetch all images
   const fetchMedia = async () => {
     setLoading(true);
-    const { data, error } = await supabase.storage.from(bucketName).list("", { limit: 100 });
-
-    if (!error && data) {
-      const mediaItems = data.map((item) => {
-        const { publicUrl } = supabase.storage.from(bucketName).getPublicUrl(item.name);
-        return { name: item.name, url: publicUrl };
-      });
-      setMedia(mediaItems);
-    }
+    const { data } = await listMediaFiles();
+    setMedia(data);
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchMedia();
+    void fetchMedia();
   }, []);
+
+  useEffect(() => {
+    setCurrentSelection(selected ?? null);
+  }, [selected]);
+
+  const filteredMedia = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    if (!normalizedQuery) {
+      return media;
+    }
+
+    return media.filter((item) => item.name.toLowerCase().includes(normalizedQuery));
+  }, [media, query]);
 
   const handleSelect = (url: string) => {
     setCurrentSelection(url);
@@ -92,33 +48,56 @@ export default function MediaPicker({ selected, onSelect }: MediaPickerProps) {
   };
 
   return (
-    <div className="border rounded p-4">
-      <h2 className="text-lg font-medium mb-3">Select Image</h2>
+    <div className="rounded border p-4">
+      <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <h2 className="text-lg font-medium">Select Image</h2>
+
+        <div className="flex gap-2">
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search media"
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => void fetchMedia()}
+            disabled={loading}
+          >
+            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+          </Button>
+        </div>
+      </div>
 
       {loading ? (
-        <p>Loading images…</p>
-      ) : media.length === 0 ? (
+        <p>Loading images...</p>
+      ) : filteredMedia.length === 0 ? (
         <p className="text-muted-foreground">No images available in the bucket.</p>
       ) : (
-        <div className="grid grid-cols-3 md:grid-cols-4 gap-3">
-          {media.map((item) => (
-            <div
+        <div className="grid grid-cols-3 gap-3 md:grid-cols-4">
+          {filteredMedia.map((item) => (
+            <button
               key={item.name}
-              className={`border rounded overflow-hidden cursor-pointer relative ${
-                currentSelection === item.url ? "ring-2 ring-blue-500" : ""
+              type="button"
+              className={`overflow-hidden rounded border text-left ${
+                currentSelection === item.url ? "ring-2 ring-primary" : ""
               }`}
               onClick={() => handleSelect(item.url)}
             >
-              <img src={item.url} alt={item.name} className="w-full h-24 object-cover" />
-            </div>
+              <img src={item.url} alt={item.name} className="h-24 w-full object-cover" />
+              <div className="border-t bg-background/95 px-2 py-1 text-xs text-muted-foreground">
+                {item.name}
+              </div>
+            </button>
           ))}
         </div>
       )}
 
       {currentSelection && (
         <div className="mt-3">
-          <p className="text-sm font-medium mb-1">Selected Image:</p>
-          <img src={currentSelection} alt="Selected" className="w-32 h-32 object-cover rounded" />
+          <p className="mb-1 text-sm font-medium">Selected Image:</p>
+          <img src={currentSelection} alt="Selected" className="h-32 w-32 rounded object-cover" />
         </div>
       )}
     </div>

@@ -23,6 +23,10 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminRegistrations from "./pages/admin/AdminRegistrations";
 import AdminQuotes from "./pages/admin/AdminQuotes";
+import AdminPrograms from "./pages/admin/AdminPrograms";
+import AdminEvents from "./pages/admin/AdminEvents";
+import AdminMedia from "./pages/admin/AdminMedia";
+import AdminUsers from "./pages/admin/AdminUsers";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +56,10 @@ const App = () => (
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/registrations" element={<AdminRegistrations />} />
           <Route path="/admin/quotes" element={<AdminQuotes />} />
+          <Route path="/admin/programs" element={<AdminPrograms />} />
+          <Route path="/admin/events" element={<AdminEvents />} />
+          <Route path="/admin/media" element={<AdminMedia />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
 
           {/* ===== FALLBACKS ===== */}
           <Route path="/404" element={<NotFound />} />
