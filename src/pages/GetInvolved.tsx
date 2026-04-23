@@ -454,7 +454,9 @@ const GetInvolved = () => {
 
     toast({
       title: wasUpdate ? "Application updated" : "Application submitted!",
-      description: "Thank you for volunteering. We’ll be in touch soon.",
+      description: wasUpdate
+        ? "Your existing volunteer application has been updated."
+        : "Thank you for volunteering. We’ll be in touch soon.",
     });
 
     setFormData({
