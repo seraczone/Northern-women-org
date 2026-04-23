@@ -1284,6 +1284,15 @@ const fadeInUp: Variants = {
 /* ================= PAGE ================= */
 export default function Events() {
   const navigate = useNavigate();
+  const getRegistrationPath = (eventTitle: string) => {
+    const normalizedTitle = eventTitle.trim().toLowerCase();
+
+    if (normalizedTitle.includes("northern women summit 2026")) {
+      return "/summit-2026/register";
+    }
+
+    return `/register-event?event=${encodeURIComponent(eventTitle)}`;
+  };
 
   const [lightbox, setLightbox] = useState<{ open: boolean; img?: string }>({
     open: false,
@@ -1385,11 +1394,7 @@ export default function Events() {
               </div>
 
               <Button variant="gold" size="xl" asChild>
-                <Link
-                  to={`/register-event?event=${encodeURIComponent(
-                    featuredEvent.title
-                  )}`}
-                >
+                <Link to={getRegistrationPath(featuredEvent.title)}>
                   Register Now <ArrowRight size={18} />
                 </Link>
               </Button>

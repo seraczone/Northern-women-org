@@ -322,7 +322,7 @@ const About = () => {
             starts here.
           </p>
           <Button variant="hero" size="xl" asChild>
-            <Link to="/get-involved">
+            <Link to="/join-us">
               Get Involved Today
               <ArrowRight size={20} />
             </Link>

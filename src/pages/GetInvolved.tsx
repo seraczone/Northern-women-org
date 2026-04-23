@@ -397,7 +397,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Users, ArrowRight, CheckCircle } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { saveRegistrationByEmail } from "@/lib/saveRegistrationByEmail";
 import whatsappLogo from "../assets/whatsapp.png"; // ✅ CORRECT IMAGE IMPORT
 
 const volunteerOpportunities = [
@@ -431,21 +431,20 @@ const GetInvolved = () => {
     e.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase
-      .from("volunteer_applications")
-      .insert([
-        {
-          first_name: formData.firstName,
-          last_name: formData.lastName,
-          email: formData.email,
-          phone: formData.phone,
-          message: formData.message,
-        },
-      ]);
+    const { error, wasUpdate } = await saveRegistrationByEmail({
+      table: "volunteer_applications",
+      email: formData.email,
+      payload: {
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        phone: formData.phone,
+        message: formData.message,
+      },
+    });
 
     if (error) {
       toast({
-        title: "Submission failed",
+        title: "Unable to save application",
         description: error.message,
         variant: "destructive",
       });
@@ -454,7 +453,7 @@ const GetInvolved = () => {
     }
 
     toast({
-      title: "Application submitted!",
+      title: wasUpdate ? "Application updated" : "Application submitted!",
       description: "Thank you for volunteering. We’ll be in touch soon.",
     });
 

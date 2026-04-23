@@ -47,7 +47,7 @@ const Navbar = () => {
           {/* Desktop CTA */}
           <div className="hidden lg:flex items-center gap-4">
             <Button variant="gold" size="lg" asChild>
-              <Link to="/get-involved">Join Us</Link>
+              <Link to="/join-us">Join Us</Link>
             </Button>
           </div>
 
@@ -81,7 +81,7 @@ const Navbar = () => {
               ))}
               <div className="px-4 pt-4 border-t border-border">
                 <Button variant="gold" className="w-full" asChild>
-                  <Link to="/get-involved">Join Us</Link>
+                  <Link to="/join-us">Join Us</Link>
                 </Button>
               </div>
             </div>

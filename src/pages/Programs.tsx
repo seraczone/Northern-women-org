@@ -290,7 +290,7 @@ export default function Programs() {
             Join our programs and become part of a movement transforming lives across the North.
           </p>
           <Button variant="hero" size="xl" asChild>
-            <Link to="/get-involved">
+            <Link to="/join-us">
               Get Started Today
               <ArrowRight size={20} />
             </Link>

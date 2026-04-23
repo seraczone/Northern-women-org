@@ -1,11 +1,14 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Calendar,
+  Heart,
   Image,
   LayoutDashboard,
   LogOut,
   Quote,
   Shield,
+  Ticket,
+  UserPlus,
   Users,
 } from "lucide-react";
 
@@ -40,7 +43,28 @@ export default function AdminSidebar() {
           to="/admin/registrations"
           className={({ isActive }) => `${linkClass} ${isActive ? activeClass : ""}`}
         >
-          <Users size={18} /> Registrations
+          <Users size={18} /> Event Registrations
+        </NavLink>
+
+        <NavLink
+          to="/admin/summit-registrations"
+          className={({ isActive }) => `${linkClass} ${isActive ? activeClass : ""}`}
+        >
+          <Ticket size={18} /> Summit 2026
+        </NavLink>
+
+        <NavLink
+          to="/admin/join-us"
+          className={({ isActive }) => `${linkClass} ${isActive ? activeClass : ""}`}
+        >
+          <UserPlus size={18} /> Join Us
+        </NavLink>
+
+        <NavLink
+          to="/admin/get-involved"
+          className={({ isActive }) => `${linkClass} ${isActive ? activeClass : ""}`}
+        >
+          <Heart size={18} /> Get Involved
         </NavLink>
 
         <NavLink

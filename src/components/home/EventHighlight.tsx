@@ -170,7 +170,7 @@ const EventHighlight = () => {
             </div>
 
             <Button variant="gold" size="xl" asChild>
-              <Link to="/register-event" className="flex items-center gap-2">
+              <Link to="/summit-2026/register" className="flex items-center gap-2">
                 Register Now
                 <ArrowRight size={20} />
               </Link>
