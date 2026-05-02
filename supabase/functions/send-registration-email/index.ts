@@ -51,9 +51,9 @@ const flowContent: Record<Exclude<Flow, "event">, FlowContent> = {
     adminLabel: "Join Us Registration",
     confirmationTitle: "Join Us Registration",
     submittedText:
-      "We have successfully received your Join Us registration. Our team will review your details and contact you when relevant engagement opportunities or next steps arise.",
+      "We have successfully received your Join Us registration. Our team will review your details and reach out when relevant opportunities for engagement and participation arise.",
     updatedText:
-      "Your Join Us registration has been updated successfully. Our team will continue any follow-up using your latest information.",
+      "Your Join Us registration has been updated successfully. Any future follow-up will be based on your latest information.",
   },
   summit_2026: {
     adminLabel: "Summit 2026 Registration",
@@ -495,17 +495,17 @@ const buildJoinUsUserEmailHtml = ({
 
   return `
     <p>${greeting}</p>
-    <p>Thank you for your interest in joining Northern Women Initiative. We are pleased to confirm that your registration has been received successfully.</p>
+    <p>Thank you for your interest in joining Northern Women Initiative. We are delighted to confirm that your registration has been received successfully.</p>
     <p>${escapeHtml(wasUpdate ? content.updatedText : content.submittedText)}</p>
     <h3 style="margin-top:24px;">Next Steps</h3>
     <ul style="padding-left:20px;">
       <li>Our team will review your details and keep them on record for future engagement and follow-up.</li>
       <li>You may receive updates about programs, mentorship opportunities, community activities, and partnership initiatives.</li>
-      <li>If additional clarification is needed, we will contact you using the email address or phone number you provided.</li>
+      <li>If we need any clarification, we will contact you using the email address or phone number you provided.</li>
     </ul>
     ${summary}
     ${buildSupportBlock()}
-    <p style="margin-top:24px;">We appreciate your desire to be part of a growing network committed to empowering women and strengthening community development across Northern Nigeria and beyond.</p>
+    <p style="margin-top:24px;">We appreciate your desire to be part of a growing network committed to empowering women, nurturing leadership, and strengthening community development across Northern Nigeria and beyond.</p>
     <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
   `;
 };
@@ -542,7 +542,7 @@ const buildVolunteerUserEmailHtml = ({
 
   return `
     <p>${greeting}</p>
-    <p>Thank you for offering to volunteer with Northern Women Initiative. We are pleased to confirm that your application has been received successfully.</p>
+    <p>Thank you for offering to volunteer with Northern Women Initiative. We are delighted to confirm that your application has been received successfully.</p>
     <p>${escapeHtml(wasUpdate ? content.updatedText : content.submittedText)}</p>
     <h3 style="margin-top:24px;">Next Steps</h3>
     <ul style="padding-left:20px;">
@@ -552,7 +552,7 @@ const buildVolunteerUserEmailHtml = ({
     </ul>
     ${summary}
     ${buildSupportBlock()}
-    <p style="margin-top:24px;">Thank you for your willingness to contribute your time and support toward empowering women and strengthening communities.</p>
+    <p style="margin-top:24px;">Thank you for your willingness to contribute your time, compassion, and support toward empowering women and strengthening communities.</p>
     <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
   `;
 };
@@ -599,7 +599,7 @@ const buildSummitUserEmailHtml = ({
 
   return `
     <p>${greeting}</p>
-    <p>Thank you for registering for the Northern Women Summit 2026. We are pleased to confirm that your registration has been received successfully.</p>
+    <p>Thank you for registering for the Northern Women Summit 2026. We are delighted to confirm that your registration has been received successfully.</p>
     <p>${escapeHtml(wasUpdate ? content.updatedText : content.submittedText)}</p>
     <h3 style="margin-top:24px;">Next Steps</h3>
     <ul style="padding-left:20px;">
@@ -609,7 +609,7 @@ const buildSummitUserEmailHtml = ({
     </ul>
     ${summary}
     ${buildSupportBlock()}
-    <p style="margin-top:24px;">We look forward to welcoming you to a meaningful gathering focused on empowerment, leadership, and sustainable community development.</p>
+    <p style="margin-top:24px;">We look forward to welcoming you to a meaningful gathering centered on empowerment, leadership, shared learning, and sustainable community development.</p>
     <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
   `;
 };
@@ -692,7 +692,7 @@ const buildEventUserEmailHtml = ({
 
   return `
     <p>${greeting}</p>
-    <p>Thank you for registering for our upcoming event. We are pleased to confirm your successful registration.</p>
+    <p>Thank you for registering for our upcoming event. We are delighted to confirm your successful registration.</p>
     <h3 style="margin-top:24px;">Event Details</h3>
     <p><strong>Event Title:</strong> ${escapeHtml(eventTitle)}</p>
     <p><strong>Date:</strong> ${escapeHtml(eventDate)}</p>
@@ -722,7 +722,7 @@ const buildEventUserEmailHtml = ({
         `
         : ""
     }
-    <p style="margin-top:24px;">We look forward to welcoming you and having you participate in this impactful session aimed at empowering women and strengthening community development.</p>
+    <p style="margin-top:24px;">We look forward to welcoming you and having you participate in this meaningful session aimed at empowering women and strengthening community development.</p>
     <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
     ${
       wasUpdate
