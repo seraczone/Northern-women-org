@@ -41,6 +41,11 @@ type CalendarEvent = {
   icsAttachment: EmailAttachment;
 };
 
+type RegistrationSummaryItem = {
+  label: string;
+  value: string;
+};
+
 const flowContent: Record<Exclude<Flow, "event">, FlowContent> = {
   join_us: {
     adminLabel: "Join Us Registration",
@@ -402,6 +407,264 @@ const buildDefaultUserEmailHtml = ({
   <p>If you need to share anything else, you can reply to this email or contact the team directly.</p>
 `;
 
+const getSubmissionText = (submission: Record<string, unknown>, key: string) =>
+  String(submission[key] ?? "").trim();
+
+const buildSummaryList = (items: RegistrationSummaryItem[]) => {
+  const renderedItems = items
+    .filter((item) => item.value)
+    .map(
+      (item) =>
+        `<li style="margin:0 0 8px 0;"><strong>${escapeHtml(item.label)}:</strong> ${escapeHtml(item.value)}</li>`,
+    )
+    .join("");
+
+  if (!renderedItems) {
+    return "";
+  }
+
+  return `
+    <h3 style="margin-top:24px;">Submitted Details</h3>
+    <ul style="padding-left:20px;">
+      ${renderedItems}
+    </ul>
+  `;
+};
+
+const buildSupportBlock = () => {
+  const supportEmail = SUPPORT_EMAIL?.trim();
+  const supportNumber = SUPPORT_WHATSAPP_NUMBER.trim();
+
+  if (!supportEmail && !supportNumber) {
+    return "";
+  }
+
+  return `
+    <h3 style="margin-top:24px;">Need Help?</h3>
+    ${supportNumber ? `<p><strong>WhatsApp:</strong> ${escapeHtml(supportNumber)}</p>` : ""}
+    ${supportEmail ? `<p><strong>Email:</strong> ${escapeHtml(supportEmail)}</p>` : ""}
+  `;
+};
+
+const buildJoinUsUserEmailHtml = ({
+  greeting,
+  content,
+  wasUpdate,
+  submission,
+}: {
+  greeting: string;
+  content: FlowContent;
+  wasUpdate: boolean;
+  submission: Record<string, unknown>;
+}) => {
+  const summary = buildSummaryList([
+    {
+      label: "Full Name",
+      value: `${getSubmissionText(submission, "first_name")} ${getSubmissionText(submission, "last_name")}`.trim(),
+    },
+    {
+      label: "Email",
+      value: getSubmissionText(submission, "email"),
+    },
+    {
+      label: "Phone",
+      value: getSubmissionText(submission, "phone"),
+    },
+    {
+      label: "Occupation",
+      value: getSubmissionText(submission, "occupation"),
+    },
+    {
+      label: "Location",
+      value: [
+        getSubmissionText(submission, "town_city"),
+        getSubmissionText(submission, "state"),
+        getSubmissionText(submission, "country"),
+      ]
+        .filter(Boolean)
+        .join(", "),
+    },
+  ]);
+
+  return `
+    <p>${greeting}</p>
+    <p>Thank you for registering to join Northern Women Initiative. We are pleased to confirm that your submission has been received successfully.</p>
+    <p>${escapeHtml(wasUpdate ? content.updatedText : content.submittedText)}</p>
+    <h3 style="margin-top:24px;">What Happens Next</h3>
+    <ul style="padding-left:20px;">
+      <li>Our team will review your details and keep them on record for follow-up.</li>
+      <li>You may receive updates about community opportunities, programs, and engagement activities.</li>
+      <li>If we need any clarification, we will contact you using the email address or phone number you provided.</li>
+    </ul>
+    ${summary}
+    ${buildSupportBlock()}
+    <p style="margin-top:24px;">We appreciate your interest in being part of a growing network committed to empowering women and strengthening community development.</p>
+    <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
+  `;
+};
+
+const buildVolunteerUserEmailHtml = ({
+  greeting,
+  content,
+  wasUpdate,
+  submission,
+}: {
+  greeting: string;
+  content: FlowContent;
+  wasUpdate: boolean;
+  submission: Record<string, unknown>;
+}) => {
+  const summary = buildSummaryList([
+    {
+      label: "Full Name",
+      value: `${getSubmissionText(submission, "first_name")} ${getSubmissionText(submission, "last_name")}`.trim(),
+    },
+    {
+      label: "Email",
+      value: getSubmissionText(submission, "email"),
+    },
+    {
+      label: "Phone",
+      value: getSubmissionText(submission, "phone"),
+    },
+    {
+      label: "Message",
+      value: getSubmissionText(submission, "message"),
+    },
+  ]);
+
+  return `
+    <p>${greeting}</p>
+    <p>Thank you for volunteering with Northern Women Initiative. Your application has been received successfully.</p>
+    <p>${escapeHtml(wasUpdate ? content.updatedText : content.submittedText)}</p>
+    <h3 style="margin-top:24px;">What Happens Next</h3>
+    <ul style="padding-left:20px;">
+      <li>Our team will review your skills, availability, and areas of interest.</li>
+      <li>We will contact you when there is a suitable volunteer opportunity or next step.</li>
+      <li>Please keep this email as confirmation that your application was submitted.</li>
+    </ul>
+    ${summary}
+    ${buildSupportBlock()}
+    <p style="margin-top:24px;">Thank you for offering your time and support to help empower women and communities.</p>
+    <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
+  `;
+};
+
+const buildSummitUserEmailHtml = ({
+  greeting,
+  content,
+  wasUpdate,
+  submission,
+}: {
+  greeting: string;
+  content: FlowContent;
+  wasUpdate: boolean;
+  submission: Record<string, unknown>;
+}) => {
+  const summary = buildSummaryList([
+    {
+      label: "Full Name",
+      value: `${getSubmissionText(submission, "first_name")} ${getSubmissionText(submission, "last_name")}`.trim(),
+    },
+    {
+      label: "Email",
+      value: getSubmissionText(submission, "email"),
+    },
+    {
+      label: "Phone",
+      value: getSubmissionText(submission, "phone"),
+    },
+    {
+      label: "Occupation",
+      value: getSubmissionText(submission, "occupation"),
+    },
+    {
+      label: "Organization",
+      value: getSubmissionText(submission, "organization"),
+    },
+    {
+      label: "Location",
+      value: [getSubmissionText(submission, "state"), getSubmissionText(submission, "country")]
+        .filter(Boolean)
+        .join(", "),
+    },
+  ]);
+
+  return `
+    <p>${greeting}</p>
+    <p>Thank you for registering for the Northern Women Summit 2026. We are pleased to confirm that your registration has been received successfully.</p>
+    <p>${escapeHtml(wasUpdate ? content.updatedText : content.submittedText)}</p>
+    <h3 style="margin-top:24px;">What Happens Next</h3>
+    <ul style="padding-left:20px;">
+      <li>You will receive future summit updates and important announcements by email.</li>
+      <li>Your submitted details will help the team plan attendance, communication, and support.</li>
+      <li>Please keep this email for your records as confirmation of your summit registration.</li>
+    </ul>
+    ${summary}
+    ${buildSupportBlock()}
+    <p style="margin-top:24px;">We look forward to welcoming you to a meaningful gathering focused on empowerment, leadership, and community development.</p>
+    <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
+  `;
+};
+
+const buildUserEmailHtml = ({
+  flow,
+  greeting,
+  content,
+  wasUpdate,
+  submission,
+  calendarEvent,
+}: {
+  flow: Flow;
+  greeting: string;
+  content: FlowContent;
+  wasUpdate: boolean;
+  submission: Record<string, unknown>;
+  calendarEvent: CalendarEvent | null;
+}) => {
+  if (flow === "event") {
+    return buildEventUserEmailHtml({
+      greeting,
+      content,
+      wasUpdate,
+      calendarEvent,
+    });
+  }
+
+  if (flow === "join_us") {
+    return buildJoinUsUserEmailHtml({
+      greeting,
+      content,
+      wasUpdate,
+      submission,
+    });
+  }
+
+  if (flow === "volunteer") {
+    return buildVolunteerUserEmailHtml({
+      greeting,
+      content,
+      wasUpdate,
+      submission,
+    });
+  }
+
+  if (flow === "summit_2026") {
+    return buildSummitUserEmailHtml({
+      greeting,
+      content,
+      wasUpdate,
+      submission,
+    });
+  }
+
+  return buildDefaultUserEmailHtml({
+    greeting,
+    content,
+    wasUpdate,
+  });
+};
+
 const buildEventUserEmailHtml = ({
   greeting,
   content,
@@ -585,19 +848,14 @@ serve(async (req) => {
     await sendEmail({
       to: email,
       subject: `${content.confirmationTitle} ${wasUpdate ? "Updated" : "Received"}`,
-      html:
-        flow === "event"
-          ? buildEventUserEmailHtml({
-              greeting: userGreeting,
-              content,
-              wasUpdate,
-              calendarEvent,
-            })
-          : buildDefaultUserEmailHtml({
-              greeting: userGreeting,
-              content,
-              wasUpdate,
-            }),
+      html: buildUserEmailHtml({
+        flow,
+        greeting: userGreeting,
+        content,
+        wasUpdate,
+        submission,
+        calendarEvent,
+      }),
       replyTo: CONTACT_ADMIN_EMAIL,
       attachments: calendarEvent ? [calendarEvent.icsAttachment] : undefined,
     });
