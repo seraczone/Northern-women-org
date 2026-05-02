@@ -567,7 +567,7 @@ serve(async (req) => {
     const calendarEvent = flow === "event" ? buildCalendarEvent(submission) : null;
     const submissionRows = buildSubmissionRows(submission);
     const actionText = wasUpdate ? "Updated" : "Submitted";
-    const userGreeting = firstName ? `Hello ${escapeHtml(firstName)},` : "Hello,";
+    const userGreeting = firstName ? `Dear ${escapeHtml(firstName)},` : "Dear Registrant,";
 
     await sendEmail({
       to: CONTACT_ADMIN_EMAIL,

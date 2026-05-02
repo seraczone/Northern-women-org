@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowLeft, Calendar, Clock, MapPin } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 import Layout from "@/components/layout/Layout";
@@ -12,10 +12,13 @@ export default function RegisterEvent() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
-  const eventName = searchParams.get("event") || "Northern Women Summit";
-  const eventDate = searchParams.get("date") || "";
-  const eventTime = searchParams.get("time") || "";
-  const eventLocation = searchParams.get("location") || "";
+  const requestedEventName = searchParams.get("event")?.trim() || "";
+  const [eventDetails, setEventDetails] = useState({
+    eventName: requestedEventName || "Northern Women Summit",
+    eventDate: searchParams.get("date")?.trim() || "",
+    eventTime: searchParams.get("time")?.trim() || "",
+    eventLocation: searchParams.get("location")?.trim() || "",
+  });
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     first_name: "",
@@ -26,6 +29,58 @@ export default function RegisterEvent() {
     state: "",
     country: "",
   });
+
+  useEffect(() => {
+    let ignore = false;
+
+    const fetchFeaturedEventFallback = async () => {
+      const hasAllDetails =
+        eventDetails.eventDate.trim() &&
+        eventDetails.eventTime.trim() &&
+        eventDetails.eventLocation.trim();
+
+      if (hasAllDetails) {
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("featured_event")
+        .select("title, date, time, location")
+        .order("id", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (ignore || error || !data) {
+        return;
+      }
+
+      const normalizedRequestedTitle = (requestedEventName || eventDetails.eventName)
+        .trim()
+        .toLowerCase();
+      const normalizedFeaturedTitle = String(data.title ?? "")
+        .trim()
+        .toLowerCase();
+      const isMatchingFeaturedEvent =
+        !normalizedRequestedTitle || normalizedRequestedTitle === normalizedFeaturedTitle;
+
+      if (!isMatchingFeaturedEvent) {
+        return;
+      }
+
+      setEventDetails((current) => ({
+        eventName: requestedEventName || current.eventName || data.title || "Northern Women Summit",
+        eventDate: current.eventDate || data.date || "",
+        eventTime: current.eventTime || data.time || "",
+        eventLocation: current.eventLocation || data.location || "",
+      }));
+    };
+
+    void fetchFeaturedEventFallback();
+
+    return () => {
+      ignore = true;
+    };
+  }, [eventDetails.eventDate, eventDetails.eventLocation, eventDetails.eventName, eventDetails.eventTime, requestedEventName]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
@@ -42,7 +97,7 @@ export default function RegisterEvent() {
 
     const normalizedEmail = formData.email.trim().toLowerCase();
     const registrationRecord = {
-      event_name: eventName,
+      event_name: eventDetails.eventName,
       first_name: formData.first_name,
       last_name: formData.last_name,
       email: normalizedEmail,
@@ -53,9 +108,9 @@ export default function RegisterEvent() {
     };
     const emailSubmission = {
       ...registrationRecord,
-      event_date: eventDate,
-      event_time: eventTime,
-      event_location: eventLocation,
+      event_date: eventDetails.eventDate,
+      event_time: eventDetails.eventTime,
+      event_location: eventDetails.eventLocation,
     };
 
     const { error } = await supabase.from("event_registration").insert([registrationRecord]);
@@ -103,7 +158,7 @@ export default function RegisterEvent() {
     } else {
       toast({
         title: "Registration successful",
-        description: `You have successfully registered for ${eventName}.`,
+        description: `You have successfully registered for ${eventDetails.eventName}.`,
       });
     }
 
@@ -129,7 +184,7 @@ export default function RegisterEvent() {
             Register for Event
           </h1>
           <p className="text-lg text-primary-foreground/90">
-            Secure your spot for <span className="font-semibold">{eventName}</span>
+            Secure your spot for <span className="font-semibold">{eventDetails.eventName}</span>
           </p>
         </div>
       </section>
@@ -147,8 +202,31 @@ export default function RegisterEvent() {
 
           <div className="mb-8 flex items-center gap-3 text-muted-foreground">
             <Calendar size={18} />
-            <span>{eventName}</span>
+            <span>{eventDetails.eventName}</span>
           </div>
+
+          {(eventDetails.eventDate || eventDetails.eventTime || eventDetails.eventLocation) && (
+            <div className="mb-8 space-y-3 rounded-2xl border border-border bg-muted p-6 text-sm text-muted-foreground">
+              {eventDetails.eventDate && (
+                <div className="flex items-center gap-3">
+                  <Calendar size={16} className="text-primary" />
+                  <span>{eventDetails.eventDate}</span>
+                </div>
+              )}
+              {eventDetails.eventTime && (
+                <div className="flex items-center gap-3">
+                  <Clock size={16} className="text-primary" />
+                  <span>{eventDetails.eventTime}</span>
+                </div>
+              )}
+              {eventDetails.eventLocation && (
+                <div className="flex items-center gap-3">
+                  <MapPin size={16} className="text-primary" />
+                  <span>{eventDetails.eventLocation}</span>
+                </div>
+              )}
+            </div>
+          )}
 
           <form
             onSubmit={handleSubmit}
