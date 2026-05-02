@@ -1,9 +1,10 @@
+import { useState } from "react";
+import { ArrowLeft, Calendar } from "lucide-react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Calendar } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
 
@@ -11,12 +12,8 @@ export default function RegisterEvent() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
-
-  const eventName =
-    searchParams.get("event") || "Northern Women Summit";
-
+  const eventName = searchParams.get("event") || "Northern Women Summit";
   const [loading, setLoading] = useState(false);
-
   const [formData, setFormData] = useState({
     first_name: "",
     last_name: "",
@@ -27,44 +24,40 @@ export default function RegisterEvent() {
     country: "",
   });
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = event.target;
+
+    setFormData((current) => ({
+      ...current,
       [name]: value,
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
     setLoading(true);
 
-    const { error } = await supabase
-      .from("event_registration")
-      .insert([
-        {
-          event_name: eventName,
-          first_name: formData.first_name,
-          last_name: formData.last_name,
-          email: formData.email,
-          phone: formData.phone,
-          address: formData.address,
-          state: formData.state,
-          country: formData.country,
-        },
-      ]);
+    const normalizedEmail = formData.email.trim().toLowerCase();
+    const submission = {
+      event_name: eventName,
+      first_name: formData.first_name,
+      last_name: formData.last_name,
+      email: normalizedEmail,
+      phone: formData.phone,
+      address: formData.address,
+      state: formData.state,
+      country: formData.country,
+    };
 
-    setLoading(false);
+    const { error } = await supabase.from("event_registration").insert([submission]);
 
     if (error) {
-      // Duplicate registration (email + event)
+      setLoading(false);
+
       if (error.code === "23505") {
         toast({
           title: "Already registered",
-          description:
-            "This email has already been registered for this event.",
+          description: "This email has already been registered for this event.",
           variant: "destructive",
         });
         return;
@@ -78,10 +71,32 @@ export default function RegisterEvent() {
       return;
     }
 
-    toast({
-      title: "Registration successful 🎉",
-      description: `You have successfully registered for ${eventName}`,
-    });
+    const { error: notificationError } = await supabase.functions.invoke(
+      "send-registration-email",
+      {
+        body: {
+          flow: "event",
+          wasUpdate: false,
+          submission,
+        },
+      },
+    );
+
+    setLoading(false);
+
+    if (notificationError) {
+      toast({
+        title: "Registration submitted",
+        description:
+          "Your registration was saved, but the confirmation email could not be sent yet.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Registration successful",
+        description: `You have successfully registered for ${eventName}.`,
+      });
+    }
 
     setFormData({
       first_name: "",
@@ -92,30 +107,24 @@ export default function RegisterEvent() {
       state: "",
       country: "",
     });
-
-    // Optional redirect after success
-    // navigate("/events");
   };
 
   return (
     <Layout>
-      {/* HERO SECTION */}
       <section className="bg-gradient-hero py-20">
         <div className="container-section">
-          <span className="text-secondary uppercase text-sm font-medium">
+          <span className="text-secondary text-sm font-medium uppercase">
             Event Registration
           </span>
-          <h1 className="text-4xl md:text-5xl font-serif font-bold text-primary-foreground mt-3 mb-6">
+          <h1 className="mt-3 mb-6 text-4xl font-serif font-bold text-primary-foreground md:text-5xl">
             Register for Event
           </h1>
           <p className="text-lg text-primary-foreground/90">
-            Secure your spot for{" "}
-            <span className="font-semibold">{eventName}</span>
+            Secure your spot for <span className="font-semibold">{eventName}</span>
           </p>
         </div>
       </section>
 
-      {/* FORM SECTION */}
       <section className="section-padding bg-background">
         <div className="container-section max-w-2xl">
           <Button
@@ -127,16 +136,16 @@ export default function RegisterEvent() {
             <ArrowLeft size={16} /> Back to Events
           </Button>
 
-          <div className="flex items-center gap-3 text-muted-foreground mb-8">
+          <div className="mb-8 flex items-center gap-3 text-muted-foreground">
             <Calendar size={18} />
             <span>{eventName}</span>
           </div>
 
           <form
             onSubmit={handleSubmit}
-            className="bg-card rounded-2xl p-8 shadow-card border space-y-6"
+            className="space-y-6 rounded-2xl border bg-card p-8 shadow-card"
           >
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Input
                 name="first_name"
                 placeholder="First Name"
@@ -179,7 +188,7 @@ export default function RegisterEvent() {
               onChange={handleChange}
             />
 
-            <div className="grid sm:grid-cols-2 gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Input
                 name="state"
                 placeholder="State"
@@ -211,6 +220,3 @@ export default function RegisterEvent() {
     </Layout>
   );
 }
-
-
-
