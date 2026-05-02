@@ -495,17 +495,18 @@ const buildJoinUsUserEmailHtml = ({
 
   return `
     <p>${greeting}</p>
-    <p>Thank you for your interest in joining Northern Women Initiative. We are delighted to confirm that your registration has been received successfully.</p>
+    <p>Thank you for choosing to connect with Northern Women Initiative. We are delighted to confirm that your registration has been received successfully.</p>
     <p>${escapeHtml(wasUpdate ? content.updatedText : content.submittedText)}</p>
     <h3 style="margin-top:24px;">Next Steps</h3>
     <ul style="padding-left:20px;">
       <li>Our team will review your details and keep them on record for future engagement and follow-up.</li>
-      <li>You may receive updates about programs, mentorship opportunities, community activities, and partnership initiatives.</li>
+      <li>You may receive updates about programs, mentorship opportunities, community outreach, and partnership initiatives led by the initiative.</li>
       <li>If we need any clarification, we will contact you using the email address or phone number you provided.</li>
     </ul>
     ${summary}
     ${buildSupportBlock()}
     <p style="margin-top:24px;">We appreciate your desire to be part of a growing network committed to empowering women, nurturing leadership, and strengthening community development across Northern Nigeria and beyond.</p>
+    <p>Together, we can continue building opportunities that uplift women, families, and communities.</p>
     <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
   `;
 };
@@ -542,7 +543,7 @@ const buildVolunteerUserEmailHtml = ({
 
   return `
     <p>${greeting}</p>
-    <p>Thank you for offering to volunteer with Northern Women Initiative. We are delighted to confirm that your application has been received successfully.</p>
+    <p>Thank you for offering to serve with Northern Women Initiative. We are delighted to confirm that your volunteer application has been received successfully.</p>
     <p>${escapeHtml(wasUpdate ? content.updatedText : content.submittedText)}</p>
     <h3 style="margin-top:24px;">Next Steps</h3>
     <ul style="padding-left:20px;">
@@ -553,6 +554,7 @@ const buildVolunteerUserEmailHtml = ({
     ${summary}
     ${buildSupportBlock()}
     <p style="margin-top:24px;">Thank you for your willingness to contribute your time, compassion, and support toward empowering women and strengthening communities.</p>
+    <p>Your willingness to serve helps advance the work of dignity, opportunity, and community transformation that defines our mission.</p>
     <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
   `;
 };
@@ -610,6 +612,7 @@ const buildSummitUserEmailHtml = ({
     ${summary}
     ${buildSupportBlock()}
     <p style="margin-top:24px;">We look forward to welcoming you to a meaningful gathering centered on empowerment, leadership, shared learning, and sustainable community development.</p>
+    <p>The summit is part of our continued commitment to amplifying women’s voices and building stronger communities through collective action.</p>
     <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
   `;
 };
@@ -722,7 +725,8 @@ const buildEventUserEmailHtml = ({
         `
         : ""
     }
-    <p style="margin-top:24px;">We look forward to welcoming you and having you participate in this meaningful session aimed at empowering women and strengthening community development.</p>
+    <p style="margin-top:24px;">We look forward to welcoming you and having you participate in this meaningful session dedicated to empowering women and strengthening community development.</p>
+    <p>Thank you for standing with Northern Women Initiative as we continue to create spaces for learning, leadership, and lasting impact.</p>
     <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
     ${
       wasUpdate
