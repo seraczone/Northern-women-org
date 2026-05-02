@@ -1281,17 +1281,45 @@ const fadeInUp: Variants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
 };
 
+type RegistrationEventDetails = {
+  title: string;
+  date?: string | null;
+  time?: string | null;
+  location?: string | null;
+};
+
 /* ================= PAGE ================= */
 export default function Events() {
   const navigate = useNavigate();
-  const getRegistrationPath = (eventTitle: string) => {
-    const normalizedTitle = eventTitle.trim().toLowerCase();
+  const getRegistrationPath = ({
+    title,
+    date,
+    time,
+    location,
+  }: RegistrationEventDetails) => {
+    const normalizedTitle = title.trim().toLowerCase();
 
     if (normalizedTitle.includes("northern women summit 2026")) {
       return "/summit-2026/register";
     }
 
-    return `/register-event?event=${encodeURIComponent(eventTitle)}`;
+    const params = new URLSearchParams({
+      event: title,
+    });
+
+    if (date?.trim()) {
+      params.set("date", date);
+    }
+
+    if (time?.trim()) {
+      params.set("time", time);
+    }
+
+    if (location?.trim()) {
+      params.set("location", location);
+    }
+
+    return `/register-event?${params.toString()}`;
   };
 
   const [lightbox, setLightbox] = useState<{ open: boolean; img?: string }>({
@@ -1394,7 +1422,14 @@ export default function Events() {
               </div>
 
               <Button variant="gold" size="xl" asChild>
-                <Link to={getRegistrationPath(featuredEvent.title)}>
+                <Link
+                  to={getRegistrationPath({
+                    title: featuredEvent.title,
+                    date: featuredEvent.date,
+                    time: featuredEvent.time,
+                    location: featuredEvent.location,
+                  })}
+                >
                   Register Now <ArrowRight size={18} />
                 </Link>
               </Button>

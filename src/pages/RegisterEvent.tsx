@@ -13,6 +13,9 @@ export default function RegisterEvent() {
   const { toast } = useToast();
   const [searchParams] = useSearchParams();
   const eventName = searchParams.get("event") || "Northern Women Summit";
+  const eventDate = searchParams.get("date") || "";
+  const eventTime = searchParams.get("time") || "";
+  const eventLocation = searchParams.get("location") || "";
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     first_name: "",
@@ -38,7 +41,7 @@ export default function RegisterEvent() {
     setLoading(true);
 
     const normalizedEmail = formData.email.trim().toLowerCase();
-    const submission = {
+    const registrationRecord = {
       event_name: eventName,
       first_name: formData.first_name,
       last_name: formData.last_name,
@@ -48,8 +51,14 @@ export default function RegisterEvent() {
       state: formData.state,
       country: formData.country,
     };
+    const emailSubmission = {
+      ...registrationRecord,
+      event_date: eventDate,
+      event_time: eventTime,
+      event_location: eventLocation,
+    };
 
-    const { error } = await supabase.from("event_registration").insert([submission]);
+    const { error } = await supabase.from("event_registration").insert([registrationRecord]);
 
     if (error) {
       setLoading(false);
@@ -77,7 +86,7 @@ export default function RegisterEvent() {
         body: {
           flow: "event",
           wasUpdate: false,
-          submission,
+          submission: emailSubmission,
         },
       },
     );
