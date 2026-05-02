@@ -617,6 +617,64 @@ const buildSummitUserEmailHtml = ({
   `;
 };
 
+const buildSummitUserEmailHtmlBranded = ({
+  greeting,
+  content,
+  wasUpdate,
+  submission,
+}: {
+  greeting: string;
+  content: FlowContent;
+  wasUpdate: boolean;
+  submission: Record<string, unknown>;
+}) => {
+  const summary = buildSummaryList([
+    {
+      label: "Full Name",
+      value: `${getSubmissionText(submission, "first_name")} ${getSubmissionText(submission, "last_name")}`.trim(),
+    },
+    {
+      label: "Email",
+      value: getSubmissionText(submission, "email"),
+    },
+    {
+      label: "Phone",
+      value: getSubmissionText(submission, "phone"),
+    },
+    {
+      label: "Occupation",
+      value: getSubmissionText(submission, "occupation"),
+    },
+    {
+      label: "Organization",
+      value: getSubmissionText(submission, "organization"),
+    },
+    {
+      label: "Location",
+      value: [getSubmissionText(submission, "state"), getSubmissionText(submission, "country")]
+        .filter(Boolean)
+        .join(", "),
+    },
+  ]);
+
+  return `
+    <p>${greeting}</p>
+    <p>Thank you for registering for the Northern Women Summit 2026. We are delighted to confirm that your registration has been received successfully.</p>
+    <p>${escapeHtml(wasUpdate ? content.updatedText : content.submittedText)}</p>
+    <h3 style="margin-top:24px;">Next Steps</h3>
+    <ul style="padding-left:20px;">
+      <li>You will receive future summit updates, participation guidance, and important announcements by email.</li>
+      <li>Your submitted details will help the team plan communication, attendance support, and event coordination effectively.</li>
+      <li>Please keep this email for your records as confirmation of your summit registration.</li>
+    </ul>
+    ${summary}
+    ${buildSupportBlock()}
+    <p style="margin-top:24px;">We look forward to welcoming you to a meaningful gathering centered on empowerment, leadership, shared learning, and sustainable community development.</p>
+    <p>The summit is part of our continued commitment to amplifying women's voices and building stronger communities through collective action.</p>
+    <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
+  `;
+};
+
 const buildUserEmailHtml = ({
   flow,
   greeting,
@@ -660,7 +718,7 @@ const buildUserEmailHtml = ({
   }
 
   if (flow === "summit_2026") {
-    return buildSummitUserEmailHtml({
+    return buildSummitUserEmailHtmlBranded({
       greeting,
       content,
       wasUpdate,
