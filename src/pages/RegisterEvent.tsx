@@ -98,22 +98,25 @@ export default function RegisterEvent() {
     const normalizedEmail = formData.email.trim().toLowerCase();
     const registrationRecord = {
       event_name: eventDetails.eventName,
-      first_name: formData.first_name,
-      last_name: formData.last_name,
-      email: normalizedEmail,
-      phone: formData.phone,
-      address: formData.address,
-      state: formData.state,
-      country: formData.country,
-    };
-    const emailSubmission = {
-      ...registrationRecord,
       event_date: eventDetails.eventDate,
       event_time: eventDetails.eventTime,
       event_location: eventDetails.eventLocation,
+      first_name: formData.first_name.trim(),
+      last_name: formData.last_name.trim(),
+      email: normalizedEmail,
+      phone: formData.phone.trim(),
+      address: formData.address.trim(),
+      state: formData.state.trim(),
+      country: formData.country.trim(),
     };
 
-    const { error } = await supabase.from("event_registration").insert([registrationRecord]);
+    const { data, error } = await supabase
+      .from("event_registration")
+      .insert([registrationRecord])
+      .select(
+        "registration_code, event_name, event_date, event_time, event_location, first_name, last_name, email, phone, address, state, country",
+      )
+      .single();
 
     if (error) {
       setLoading(false);
@@ -141,7 +144,7 @@ export default function RegisterEvent() {
         body: {
           flow: "event",
           wasUpdate: false,
-          submission: emailSubmission,
+          submission: data ?? registrationRecord,
         },
       },
     );

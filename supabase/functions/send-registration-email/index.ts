@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import * as QRCode from "npm:qrcode@1.5.4";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,6 +17,9 @@ const CONTACT_ADMIN_EMAIL = Deno.env.get("CONTACT_ADMIN_EMAIL");
 const SUPPORT_EMAIL = Deno.env.get("SUPPORT_EMAIL") ?? CONTACT_ADMIN_EMAIL;
 const SUPPORT_WHATSAPP_NUMBER = Deno.env.get("SUPPORT_WHATSAPP_NUMBER") ?? "";
 const EVENT_TIMEZONE = Deno.env.get("EVENT_TIMEZONE") ?? "Africa/Lagos";
+const PUBLIC_SITE_URL = (
+  Deno.env.get("PUBLIC_SITE_URL") ?? "https://northernwomeninitiative.org"
+).replace(/\/+$/, "");
 
 type Flow = "event" | "join_us" | "summit_2026" | "volunteer";
 
@@ -29,6 +33,8 @@ type FlowContent = {
 type EmailAttachment = {
   content: string;
   filename: string;
+  contentId?: string;
+  contentType?: string;
 };
 
 type CalendarEvent = {
@@ -39,6 +45,12 @@ type CalendarEvent = {
   description: string;
   googleCalendarLink: string;
   icsAttachment: EmailAttachment;
+};
+
+type EventTicketAssets = {
+  registrationCode: string;
+  verificationUrl: string;
+  qrAttachment: EmailAttachment;
 };
 
 type RegistrationSummaryItem = {
@@ -276,6 +288,48 @@ const slugify = (value: string) =>
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "") || "event";
+
+const getRegistrationCode = (submission: Record<string, unknown>) =>
+  String(submission.registration_code ?? "").trim().toUpperCase();
+
+const buildVerificationUrl = (registrationCode: string) => {
+  const verificationUrl = new URL("/verify-event-registration", PUBLIC_SITE_URL);
+  verificationUrl.searchParams.set("code", registrationCode);
+  return verificationUrl.toString();
+};
+
+const buildEventTicketAssets = async (
+  submission: Record<string, unknown>,
+): Promise<EventTicketAssets | null> => {
+  const registrationCode = getRegistrationCode(submission);
+
+  if (!registrationCode) {
+    return null;
+  }
+
+  const verificationUrl = buildVerificationUrl(registrationCode);
+  const qrDataUrl = await QRCode.toDataURL(verificationUrl, {
+    errorCorrectionLevel: "M",
+    margin: 1,
+    width: 320,
+  });
+  const [, qrContent = ""] = qrDataUrl.split(",", 2);
+
+  if (!qrContent) {
+    return null;
+  }
+
+  return {
+    registrationCode,
+    verificationUrl,
+    qrAttachment: {
+      filename: `${registrationCode.toLowerCase()}.png`,
+      content: qrContent,
+      contentId: "event-registration-qr",
+      contentType: "image/png",
+    },
+  };
+};
 
 const buildCalendarEvent = (
   submission: Record<string, unknown>,
@@ -682,6 +736,7 @@ const buildUserEmailHtml = ({
   wasUpdate,
   submission,
   calendarEvent,
+  eventTicketAssets,
 }: {
   flow: Flow;
   greeting: string;
@@ -689,6 +744,7 @@ const buildUserEmailHtml = ({
   wasUpdate: boolean;
   submission: Record<string, unknown>;
   calendarEvent: CalendarEvent | null;
+  eventTicketAssets: EventTicketAssets | null;
 }) => {
   if (flow === "event") {
     return buildEventUserEmailHtml({
@@ -696,6 +752,7 @@ const buildUserEmailHtml = ({
       content,
       wasUpdate,
       calendarEvent,
+      eventTicketAssets,
     });
   }
 
@@ -738,11 +795,13 @@ const buildEventUserEmailHtml = ({
   content,
   wasUpdate,
   calendarEvent,
+  eventTicketAssets,
 }: {
   greeting: string;
   content: FlowContent;
   wasUpdate: boolean;
   calendarEvent: CalendarEvent | null;
+  eventTicketAssets: EventTicketAssets | null;
 }) => {
   const eventTitle = calendarEvent?.title ?? content.confirmationTitle.replace(/ Registration$/, "");
   const eventDate = calendarEvent?.dateLabel || "To be confirmed";
@@ -750,15 +809,28 @@ const buildEventUserEmailHtml = ({
   const eventLocation = calendarEvent?.location || "To be confirmed";
   const supportEmail = SUPPORT_EMAIL?.trim();
   const supportNumber = SUPPORT_WHATSAPP_NUMBER.trim();
+  const registrationCode = eventTicketAssets?.registrationCode || "Pending assignment";
+  const verificationUrl = eventTicketAssets?.verificationUrl || "";
 
   return `
     <p>${greeting}</p>
     <p>Thank you for registering for our upcoming event. We are delighted to confirm your successful registration.</p>
+    <p><strong>Registration ID:</strong> ${escapeHtml(registrationCode)}</p>
     <h3 style="margin-top:24px;">Event Details</h3>
     <p><strong>Event Title:</strong> ${escapeHtml(eventTitle)}</p>
     <p><strong>Date:</strong> ${escapeHtml(eventDate)}</p>
     <p><strong>Time:</strong> ${escapeHtml(eventTime)}</p>
     <p><strong>Venue / Link:</strong> ${escapeHtml(eventLocation)}</p>
+    ${
+      eventTicketAssets
+        ? `
+          <h3 style="margin-top:24px;">Your Event QR Code</h3>
+          <p>Please keep this QR code and your registration ID available. The QR code opens your secure registration verification page.</p>
+          <p><img src="cid:event-registration-qr" alt="Event registration QR code" width="220" height="220" style="display:block;border:1px solid #ddd;border-radius:16px;padding:12px;background:#fff;" /></p>
+          <p><a href="${escapeHtml(verificationUrl)}">Open your verification page</a></p>
+        `
+        : ""
+    }
     ${
       calendarEvent
         ? `
@@ -819,7 +891,12 @@ const sendEmail = async ({
   }
 
   if (attachments?.length) {
-    payload.attachments = attachments;
+    payload.attachments = attachments.map((attachment) => ({
+      filename: attachment.filename,
+      content: attachment.content,
+      ...(attachment.contentId ? { content_id: attachment.contentId } : {}),
+      ...(attachment.contentType ? { content_type: attachment.contentType } : {}),
+    }));
   }
 
   const response = await fetch("https://api.resend.com/emails", {
@@ -897,6 +974,8 @@ serve(async (req) => {
 
     const content = getFlowContent(flow, submission);
     const calendarEvent = flow === "event" ? buildCalendarEvent(submission) : null;
+    const eventTicketAssets =
+      flow === "event" ? await buildEventTicketAssets(submission) : null;
     const submissionRows = buildSubmissionRows(submission);
     const actionText = wasUpdate ? "Updated" : "Submitted";
     const userGreeting = firstName ? `Dear ${escapeHtml(firstName)},` : "Dear Registrant,";
@@ -911,6 +990,11 @@ serve(async (req) => {
         <table style="border-collapse:collapse;width:100%;max-width:720px;">
           ${submissionRows}
         </table>
+        ${
+          eventTicketAssets
+            ? `<p style="margin-top:16px;"><strong>Verification Link:</strong> <a href="${escapeHtml(eventTicketAssets.verificationUrl)}">${escapeHtml(eventTicketAssets.verificationUrl)}</a></p>`
+            : ""
+        }
       `,
     });
 
@@ -924,9 +1008,12 @@ serve(async (req) => {
         wasUpdate,
         submission,
         calendarEvent,
+        eventTicketAssets,
       }),
       replyTo: CONTACT_ADMIN_EMAIL,
-      attachments: calendarEvent ? [calendarEvent.icsAttachment] : undefined,
+      attachments: [calendarEvent?.icsAttachment, eventTicketAssets?.qrAttachment].filter(
+        Boolean,
+      ) as EmailAttachment[],
     });
 
     return new Response(JSON.stringify({ success: true }), {

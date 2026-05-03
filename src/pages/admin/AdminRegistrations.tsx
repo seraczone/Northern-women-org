@@ -10,11 +10,15 @@ import { Input } from "@/components/ui/input";
 
 interface Registration {
   id: string;
+  registration_code: string;
   first_name: string;
   last_name: string;
   email: string;
   phone: string;
   event_name: string;
+  event_date: string | null;
+  event_time: string | null;
+  event_location: string | null;
   created_at: string;
 }
 
@@ -96,22 +100,30 @@ export default function AdminRegistrations() {
     const headers = [
       "No",
       "Database ID",
+      "Registration Code",
       "First Name",
       "Last Name",
       "Email",
       "Phone",
       "Event",
-      "Date",
+      "Event Date",
+      "Event Time",
+      "Event Location",
+      "Submitted On",
     ];
 
     const rows = filteredRegistrations.map((registration, index) => [
       index + 1,
       registration.id,
+      registration.registration_code,
       registration.first_name,
       registration.last_name,
       registration.email,
       registration.phone,
       registration.event_name,
+      registration.event_date || "",
+      registration.event_time || "",
+      registration.event_location || "",
       new Date(registration.created_at).toLocaleDateString(),
     ]);
 
@@ -197,10 +209,12 @@ export default function AdminRegistrations() {
                   <thead>
                     <tr className="bg-muted text-left">
                       <th className="border p-3">No.</th>
+                      <th className="border p-3">Registration ID</th>
                       <th className="border p-3">Name</th>
                       <th className="border p-3">Email</th>
                       <th className="border p-3">Phone</th>
                       <th className="border p-3">Event</th>
+                      <th className="border p-3">Event Schedule</th>
                       <th className="border p-3">Date</th>
                       <th className="border p-3">Action</th>
                     </tr>
@@ -209,12 +223,20 @@ export default function AdminRegistrations() {
                     {filteredRegistrations.map((registration, index) => (
                       <tr key={registration.id} className="hover:bg-muted/50">
                         <td className="border p-3 font-medium">{index + 1}</td>
+                        <td className="border p-3 font-mono text-xs">
+                          {registration.registration_code || "Pending"}
+                        </td>
                         <td className="border p-3 font-medium">
                           {registration.first_name} {registration.last_name}
                         </td>
                         <td className="border p-3">{registration.email}</td>
                         <td className="border p-3">{registration.phone}</td>
                         <td className="border p-3">{registration.event_name}</td>
+                        <td className="border p-3 text-sm">
+                          {[registration.event_date, registration.event_time, registration.event_location]
+                            .filter(Boolean)
+                            .join(" | ") || "Not captured"}
+                        </td>
                         <td className="border p-3">
                           {new Date(registration.created_at).toLocaleDateString()}
                         </td>

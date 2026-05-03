@@ -18,6 +18,7 @@ import Donate from "./pages/Donate";
 import OurTeam from "./pages/OurTeam";
 import RegisterEvent from "./pages/RegisterEvent";
 import RegisterSummit2026 from "./pages/RegisterSummit2026";
+import VerifyEventRegistration from "./pages/VerifyEventRegistration";
 import NotFound from "./pages/NotFound";
 
 // Admin pages
@@ -51,6 +52,7 @@ const App = () => (
           <Route path="/programs" element={<Programs />} />
           <Route path="/events" element={<Events />} />
           <Route path="/register-event" element={<RegisterEvent />} />
+          <Route path="/verify-event-registration" element={<VerifyEventRegistration />} />
           <Route path="/summit-2026/register" element={<RegisterSummit2026 />} />
           <Route path="/get-involved" element={<GetInvolved />} />
           <Route path="/join-us" element={<JoinUs />} />

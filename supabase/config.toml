@@ -393,3 +393,9 @@ entrypoint = "./functions/send-contact-email/index.ts"
 # Specifies static files to be bundled with the function. Supports glob patterns.
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/send-contact-email/*.html" ]
+
+[functions.verify-event-registration]
+enabled = true
+verify_jwt = false
+import_map = "./functions/verify-event-registration/deno.json"
+entrypoint = "./functions/verify-event-registration/index.ts"
