@@ -352,6 +352,7 @@ const buildCalendarEvent = (
   const [startTimeLabel, endTimeLabel] = splitTimeRangeSafe(timeLabel);
   const startTimeParts = startTimeLabel ? parseTimeParts(startTimeLabel) : null;
   const endTimeParts = endTimeLabel ? parseTimeParts(endTimeLabel) : null;
+
   const description = [
     `Registration confirmed for ${title}.`,
     location ? `Location: ${location}` : null,
@@ -424,6 +425,13 @@ const buildCalendarEvent = (
     );
   }
 
+  icsLines.push(
+    "BEGIN:VALARM",
+    "ACTION:DISPLAY",
+    `DESCRIPTION:${escapeIcsText(`${title} starts in 7 days.`)}`,
+    "TRIGGER:-P7D",
+    "END:VALARM",
+  );
   icsLines.push("END:VEVENT", "END:VCALENDAR");
 
   const googleCalendarLink = new URL("https://calendar.google.com/calendar/render");
@@ -835,8 +843,10 @@ const buildEventUserEmailHtml = ({
       calendarEvent
         ? `
           <h3 style="margin-top:24px;">Add to Your Calendar</h3>
-          <p><a href="${escapeHtml(calendarEvent.googleCalendarLink)}">Google Calendar</a></p>
-          <p>Outlook / Apple Calendar: the attached <strong>${escapeHtml(calendarEvent.icsAttachment.filename)}</strong> file can be opened and saved to your calendar.</p>
+          <p><strong>Action required:</strong> add this event to your calendar now so you receive a reminder before the event date.</p>
+          <p><a href="${escapeHtml(calendarEvent.googleCalendarLink)}">Click here to add this event to Google Calendar</a></p>
+          <p>If you use Outlook, Apple Calendar, or another calendar app, open the attached <strong>${escapeHtml(calendarEvent.icsAttachment.filename)}</strong> file and save it to your calendar.</p>
+          <p>The attached calendar file includes a reminder scheduled for <strong>7 days before the event</strong>.</p>
         `
         : ""
     }
@@ -844,7 +854,7 @@ const buildEventUserEmailHtml = ({
     <ul>
       <li>Please arrive at least 10 to 15 minutes early, or join the online link promptly if the event is virtual.</li>
       <li>Keep this email as your registration confirmation.</li>
-      <li>A reminder may be shared closer to the event date.</li>
+      <li>Please add this event to your calendar immediately after reading this email.</li>
     </ul>
     ${
       supportEmail || supportNumber
@@ -979,6 +989,10 @@ serve(async (req) => {
     const submissionRows = buildSubmissionRows(submission);
     const actionText = wasUpdate ? "Updated" : "Submitted";
     const userGreeting = firstName ? `Dear ${escapeHtml(firstName)},` : "Dear Registrant,";
+    const userSubject =
+      flow === "event"
+        ? `${content.confirmationTitle} ${wasUpdate ? "Updated - Update Your Calendar" : "Received - Add to Calendar"}`
+        : `${content.confirmationTitle} ${wasUpdate ? "Updated" : "Received"}`;
 
     await sendEmail({
       to: CONTACT_ADMIN_EMAIL,
@@ -1000,7 +1014,7 @@ serve(async (req) => {
 
     await sendEmail({
       to: email,
-      subject: `${content.confirmationTitle} ${wasUpdate ? "Updated" : "Received"}`,
+      subject: userSubject,
       html: buildUserEmailHtml({
         flow,
         greeting: userGreeting,
