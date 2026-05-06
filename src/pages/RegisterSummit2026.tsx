@@ -41,7 +41,7 @@ export default function RegisterSummit2026() {
     event.preventDefault();
     setLoading(true);
 
-    const { error, wasUpdate } = await saveRegistrationByEmail({
+    const { error, notificationError, wasUpdate } = await saveRegistrationByEmail({
       table: "summit_2026_registrations",
       email: formData.email,
       payload: {
@@ -68,12 +68,22 @@ export default function RegisterSummit2026() {
       return;
     }
 
-    toast({
-      title: wasUpdate ? "Registration updated" : "Registration submitted",
-      description: wasUpdate
-        ? "Your Northern Women Summit 2026 registration has been updated."
-        : "Your Northern Women Summit 2026 registration has been received.",
-    });
+    if (notificationError) {
+      toast({
+        title: wasUpdate ? "Registration updated" : "Registration submitted",
+        description: wasUpdate
+          ? "Your summit registration was updated, but the email confirmation could not be sent yet."
+          : "Your summit registration was received, but the email confirmation could not be sent yet.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: wasUpdate ? "Registration updated" : "Registration submitted",
+        description: wasUpdate
+          ? "Your Northern Women Summit 2026 registration has been updated."
+          : "Your Northern Women Summit 2026 registration has been received.",
+      });
+    }
 
     setFormData({
       first_name: "",

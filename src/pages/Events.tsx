@@ -1288,6 +1288,27 @@ type RegistrationEventDetails = {
   location?: string | null;
 };
 
+type ProgramRecord = {
+  id: number;
+  title: string;
+  description: string | null;
+  image_url: string | null;
+  order_index: number | null;
+};
+
+type GalleryRecord = {
+  id: number;
+  event_key: string;
+  image_url: string | null;
+  orientation: string | null;
+};
+
+type VideoRecord = {
+  id: number;
+  title: string;
+  video_url: string | null;
+};
+
 /* ================= PAGE ================= */
 export default function Events() {
   const navigate = useNavigate();
@@ -1326,11 +1347,11 @@ export default function Events() {
     open: false,
   });
 
-  const [programs, setPrograms] = useState<any[]>([]);
+  const [programs, setPrograms] = useState<ProgramRecord[]>([]);
   const [featuredEvent, setFeaturedEvent] = useState<any>(null);
-  const [meetGreet, setMeetGreet] = useState<any[]>([]);
-  const [summitGallery, setSummitGallery] = useState<any[]>([]);
-  const [eventVideo, setEventVideo] = useState<any>(null);
+  const [meetGreet, setMeetGreet] = useState<GalleryRecord[]>([]);
+  const [summitGallery, setSummitGallery] = useState<GalleryRecord[]>([]);
+  const [eventVideo, setEventVideo] = useState<VideoRecord | null>(null);
 
   /* ================= FETCH DATA ================= */
   useEffect(() => {

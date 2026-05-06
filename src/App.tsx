@@ -33,6 +33,7 @@ import AdminPrograms from "./pages/admin/AdminPrograms";
 import AdminEvents from "./pages/admin/AdminEvents";
 import AdminMedia from "./pages/admin/AdminMedia";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminNewsletter from "./pages/admin/AdminNewsletter";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,7 @@ const App = () => (
           <Route path="/admin/events" element={<AdminEvents />} />
           <Route path="/admin/media" element={<AdminMedia />} />
           <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/newsletter" element={<AdminNewsletter />} />
 
           {/* ===== FALLBACKS ===== */}
           <Route path="/404" element={<NotFound />} />

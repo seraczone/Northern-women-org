@@ -80,7 +80,13 @@ export default function RegisterEvent() {
     return () => {
       ignore = true;
     };
-  }, [eventDetails.eventDate, eventDetails.eventLocation, eventDetails.eventName, eventDetails.eventTime, requestedEventName]);
+  }, [
+    eventDetails.eventDate,
+    eventDetails.eventLocation,
+    eventDetails.eventName,
+    eventDetails.eventTime,
+    requestedEventName,
+  ]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;

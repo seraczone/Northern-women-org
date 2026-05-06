@@ -46,7 +46,7 @@ export default function JoinUs() {
     event.preventDefault();
     setLoading(true);
 
-    const { error, wasUpdate } = await saveRegistrationByEmail({
+    const { error, notificationError, wasUpdate } = await saveRegistrationByEmail({
       table: "join_us_registrations",
       email: formData.email,
       payload: {
@@ -75,12 +75,22 @@ export default function JoinUs() {
       return;
     }
 
-    toast({
-      title: wasUpdate ? "Registration updated" : "Registration submitted",
-      description: wasUpdate
-        ? "Your existing Join Us registration has been updated."
-        : "Your Join Us registration has been received successfully.",
-    });
+    if (notificationError) {
+      toast({
+        title: wasUpdate ? "Registration updated" : "Registration submitted",
+        description: wasUpdate
+          ? "Your Join Us registration was updated, but the email confirmation could not be sent yet."
+          : "Your Join Us registration was received, but the email confirmation could not be sent yet.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: wasUpdate ? "Registration updated" : "Registration submitted",
+        description: wasUpdate
+          ? "Your existing Join Us registration has been updated."
+          : "Your Join Us registration has been received successfully.",
+      });
+    }
 
     setFormData({
       firstName: "",

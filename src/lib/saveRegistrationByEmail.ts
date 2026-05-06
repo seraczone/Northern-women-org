@@ -12,9 +12,20 @@ type SaveRegistrationOptions = {
   payload: RegistrationPayload;
 };
 
+type NotificationError = {
+  message: string;
+} | null;
+
 type SaveRegistrationResult = {
   error: { message: string; code?: string | null } | null;
+  notificationError: NotificationError;
   wasUpdate: boolean;
+};
+
+const registrationFlowByTable: Record<RegistrationTable, string> = {
+  join_us_registrations: "join_us",
+  summit_2026_registrations: "summit_2026",
+  volunteer_applications: "volunteer",
 };
 
 const findExistingRecordIds = async (
@@ -68,6 +79,37 @@ const findExistingRecordIds = async (
     .limit(20);
 };
 
+const sendRegistrationNotification = async ({
+  table,
+  email,
+  payload,
+  wasUpdate,
+}: {
+  table: RegistrationTable;
+  email: string;
+  payload: RegistrationPayload;
+  wasUpdate: boolean;
+}): Promise<NotificationError> => {
+  const { error } = await supabase.functions.invoke("send-registration-email", {
+    body: {
+      flow: registrationFlowByTable[table],
+      wasUpdate,
+      submission: {
+        ...payload,
+        email,
+      },
+    },
+  });
+
+  if (!error) {
+    return null;
+  }
+
+  return {
+    message: error.message || "Unable to send registration email notifications.",
+  };
+};
+
 export async function saveRegistrationByEmail({
   table,
   email,
@@ -85,45 +127,61 @@ export async function saveRegistrationByEmail({
   if (existingRecord.error) {
     return {
       error: existingRecord.error,
+      notificationError: null,
       wasUpdate: false,
     };
   }
 
   const existingIds = existingRecord.data?.map((record) => record.id) || [];
+  let writeError: { message: string; code?: string | null } | null = null;
+  let wasUpdate = false;
 
   if (existingIds.length > 0) {
     const { error } = await supabase.from(table).update(record).in("id", existingIds);
+    writeError = error;
+    wasUpdate = !error;
+  } else {
+    const { error } = await supabase.from(table).insert([record]);
 
-    return {
-      error,
-      wasUpdate: !error,
-    };
+    if (error?.code !== "23505") {
+      writeError = error;
+      wasUpdate = false;
+    } else {
+      const retryLookup = await findExistingRecordIds(table, rawEmail, normalizedEmail);
+      const retryIds = retryLookup.data?.map((record) => record.id) || [];
+
+      if (retryLookup.error || retryIds.length === 0) {
+        return {
+          error: retryLookup.error || error,
+          notificationError: null,
+          wasUpdate: false,
+        };
+      }
+
+      const retryUpdate = await supabase.from(table).update(record).in("id", retryIds);
+      writeError = retryUpdate.error;
+      wasUpdate = !retryUpdate.error;
+    }
   }
 
-  const { error } = await supabase.from(table).insert([record]);
-
-  if (error?.code !== "23505") {
+  if (writeError) {
     return {
-      error,
+      error: writeError,
+      notificationError: null,
       wasUpdate: false,
     };
   }
 
-  const retryLookup = await findExistingRecordIds(table, rawEmail, normalizedEmail);
-
-  const retryIds = retryLookup.data?.map((record) => record.id) || [];
-
-  if (retryLookup.error || retryIds.length === 0) {
-    return {
-      error: retryLookup.error || error,
-      wasUpdate: false,
-    };
-  }
-
-  const retryUpdate = await supabase.from(table).update(record).in("id", retryIds);
+  const notificationError = await sendRegistrationNotification({
+    table,
+    email: normalizedEmail,
+    payload,
+    wasUpdate,
+  });
 
   return {
-    error: retryUpdate.error,
-    wasUpdate: !retryUpdate.error,
+    error: null,
+    notificationError,
+    wasUpdate,
   };
 }

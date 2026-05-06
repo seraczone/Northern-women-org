@@ -394,6 +394,18 @@ entrypoint = "./functions/send-contact-email/index.ts"
 # For example, if you want to serve static HTML pages in your function:
 # static_files = [ "./functions/send-contact-email/*.html" ]
 
+[functions.send-registration-email]
+enabled = true
+verify_jwt = true
+import_map = "./functions/send-registration-email/deno.json"
+entrypoint = "./functions/send-registration-email/index.ts"
+
+[functions.send-newsletter-email]
+enabled = true
+verify_jwt = true
+import_map = "./functions/send-newsletter-email/deno.json"
+entrypoint = "./functions/send-newsletter-email/index.ts"
+
 [functions.verify-event-registration]
 enabled = true
 verify_jwt = false

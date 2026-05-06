@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Calendar,
+  Mail,
   Heart,
   Image,
   LayoutDashboard,
@@ -86,6 +87,13 @@ export default function AdminSidebar() {
           className={({ isActive }) => `${linkClass} ${isActive ? activeClass : ""}`}
         >
           <Image size={18} /> Media
+        </NavLink>
+
+        <NavLink
+          to="/admin/newsletter"
+          className={({ isActive }) => `${linkClass} ${isActive ? activeClass : ""}`}
+        >
+          <Mail size={18} /> Newsletter
         </NavLink>
 
         <NavLink

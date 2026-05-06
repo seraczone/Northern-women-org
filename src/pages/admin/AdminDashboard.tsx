@@ -49,16 +49,25 @@ interface VolunteerApplication {
   created_at: string;
 }
 
+interface NewsletterSubscriber {
+  id: string;
+  email: string;
+  source: string;
+  created_at: string;
+}
+
 export default function AdminDashboard() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [summitRegistrations, setSummitRegistrations] = useState<SummitRegistration[]>([]);
   const [joinUsRegistrations, setJoinUsRegistrations] = useState<JoinUsRegistration[]>([]);
   const [volunteerApplications, setVolunteerApplications] = useState<VolunteerApplication[]>([]);
+  const [newsletterSubscribers, setNewsletterSubscribers] = useState<NewsletterSubscriber[]>([]);
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [registrationCount, setRegistrationCount] = useState(0);
   const [summitRegistrationCount, setSummitRegistrationCount] = useState(0);
   const [joinUsCount, setJoinUsCount] = useState(0);
   const [volunteerCount, setVolunteerCount] = useState(0);
+  const [newsletterCount, setNewsletterCount] = useState(0);
   const [quoteCount, setQuoteCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -74,11 +83,13 @@ export default function AdminDashboard() {
       recentSummitRegistrationsResponse,
       recentJoinUsResponse,
       recentVolunteerApplicationsResponse,
+      recentNewsletterSubscribersResponse,
       recentQuotesResponse,
       registrationCountResponse,
       summitRegistrationCountResponse,
       joinUsCountResponse,
       volunteerCountResponse,
+      newsletterCountResponse,
       quoteCountResponse,
     ] =
       await Promise.all([
@@ -103,6 +114,11 @@ export default function AdminDashboard() {
           .order("created_at", { ascending: false })
           .limit(5),
         supabase
+          .from("newsletter_subscribers")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(5),
+        supabase
           .from("weekly_quotes")
           .select("*")
           .order("year", { ascending: false })
@@ -121,6 +137,9 @@ export default function AdminDashboard() {
           .from("volunteer_applications")
           .select("*", { count: "exact", head: true }),
         supabase
+          .from("newsletter_subscribers")
+          .select("*", { count: "exact", head: true }),
+        supabase
           .from("weekly_quotes")
           .select("*", { count: "exact", head: true }),
       ]);
@@ -129,11 +148,13 @@ export default function AdminDashboard() {
     setSummitRegistrations(recentSummitRegistrationsResponse.data || []);
     setJoinUsRegistrations(recentJoinUsResponse.data || []);
     setVolunteerApplications(recentVolunteerApplicationsResponse.data || []);
+    setNewsletterSubscribers(recentNewsletterSubscribersResponse.data || []);
     setQuotes(recentQuotesResponse.data || []);
     setRegistrationCount(registrationCountResponse.count || 0);
     setSummitRegistrationCount(summitRegistrationCountResponse.count || 0);
     setJoinUsCount(joinUsCountResponse.count || 0);
     setVolunteerCount(volunteerCountResponse.count || 0);
+    setNewsletterCount(newsletterCountResponse.count || 0);
     setQuoteCount(quoteCountResponse.count || 0);
     setLoading(false);
   };
@@ -162,6 +183,12 @@ export default function AdminDashboard() {
     void fetchDashboardData();
   };
 
+  const deleteNewsletterSubscriber = async (id: string) => {
+    if (!window.confirm("Delete this newsletter subscriber?")) return;
+    await supabase.from("newsletter_subscribers").delete().eq("id", id);
+    void fetchDashboardData();
+  };
+
   const deleteQuote = async (id: number) => {
     if (!window.confirm("Delete this quote?")) return;
     await supabase.from("weekly_quotes").delete().eq("id", id);
@@ -181,7 +208,7 @@ export default function AdminDashboard() {
       <div className="space-y-10 p-10">
         <h1 className="mb-6 text-3xl font-bold">Admin Dashboard</h1>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-6">
           <div className="rounded-xl bg-muted p-6 text-center shadow">
             <p>Total Event Registrations</p>
             <p className="text-3xl font-bold">{registrationCount}</p>
@@ -197,6 +224,10 @@ export default function AdminDashboard() {
           <div className="rounded-xl bg-muted p-6 text-center shadow">
             <p>Total Get Involved Applications</p>
             <p className="text-3xl font-bold">{volunteerCount}</p>
+          </div>
+          <div className="rounded-xl bg-muted p-6 text-center shadow">
+            <p>Total Newsletter Subscribers</p>
+            <p className="text-3xl font-bold">{newsletterCount}</p>
           </div>
           <div className="rounded-xl bg-muted p-6 text-center shadow">
             <p>Total Weekly Quotes</p>
@@ -353,6 +384,42 @@ export default function AdminDashboard() {
                         size="sm"
                         variant="destructive"
                         onClick={() => void deleteVolunteerApplication(application.id)}
+                      >
+                        Delete
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div>
+          <h2 className="mb-4 text-2xl font-semibold">Recent Newsletter Subscribers</h2>
+          {newsletterSubscribers.length === 0 ? (
+            <p>No newsletter subscribers yet.</p>
+          ) : (
+            <table className="mb-6 w-full overflow-hidden rounded-xl border">
+              <thead className="bg-muted">
+                <tr>
+                  <th className="p-2">Email</th>
+                  <th className="p-2">Source</th>
+                  <th className="p-2">Date</th>
+                  <th className="p-2">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {newsletterSubscribers.map((subscriber) => (
+                  <tr key={subscriber.id} className="border-t">
+                    <td className="p-2">{subscriber.email}</td>
+                    <td className="p-2">{subscriber.source}</td>
+                    <td className="p-2">{new Date(subscriber.created_at).toLocaleDateString()}</td>
+                    <td className="p-2">
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => void deleteNewsletterSubscriber(subscriber.id)}
                       >
                         Delete
                       </Button>

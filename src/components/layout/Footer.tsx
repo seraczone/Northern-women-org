@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Mail, MapPin, Phone, } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { subscribeToNewsletter } from "@/lib/subscribeToNewsletter";
 import logo from "@/assets/logo.png";
 
 const TikTokIcon = () => (
@@ -16,6 +19,47 @@ const TikTokIcon = () => (
 );
 
 const Footer = () => {
+  const { toast } = useToast();
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleSubscribe = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setLoading(true);
+
+    const { error, notificationError, wasUpdate } = await subscribeToNewsletter(email);
+
+    setLoading(false);
+
+    if (error) {
+      toast({
+        title: "Subscription failed",
+        description: error.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (notificationError) {
+      toast({
+        title: wasUpdate ? "Subscription refreshed" : "Subscription saved",
+        description: wasUpdate
+          ? "Your newsletter subscription was updated, but the confirmation email could not be sent yet."
+          : "Your newsletter subscription was saved, but the confirmation email could not be sent yet.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: wasUpdate ? "Already subscribed" : "Subscription confirmed",
+        description: wasUpdate
+          ? "Your newsletter subscription is already active."
+          : "You have been added to the newsletter successfully.",
+      });
+    }
+
+    setEmail("");
+  };
+
   return (
     <footer className="bg-primary text-primary-foreground">
       {/* Newsletter Section */}
@@ -26,14 +70,22 @@ const Footer = () => {
               <h3 className="text-2xl font-serif font-semibold mb-2">Stay Connected</h3>
               <p className="text-primary-foreground/80">Join our newsletter for updates and inspiration.</p>
             </div>
-            <div className="flex gap-3 w-full md:w-auto">
+            <form
+              onSubmit={handleSubscribe}
+              className="flex gap-3 w-full md:w-auto"
+            >
               <Input
                 type="email"
                 placeholder="Enter your email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
                 className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 min-w-[250px]"
+                required
               />
-              <Button variant="gold">Subscribe</Button>
-            </div>
+              <Button variant="gold" type="submit" disabled={loading}>
+                {loading ? "Subscribing..." : "Subscribe"}
+              </Button>
+            </form>
           </div>
         </div>
       </div>
