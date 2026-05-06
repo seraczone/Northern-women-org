@@ -1309,6 +1309,8 @@ type VideoRecord = {
   video_url: string | null;
 };
 
+const getImageSrc = (value: string | null | undefined) => String(value ?? "").trim();
+
 /* ================= PAGE ================= */
 export default function Events() {
   const navigate = useNavigate();
@@ -1413,7 +1415,7 @@ export default function Events() {
         <section className="section-padding bg-background">
           <div className="container-section grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
             <img
-              src={`${featuredEvent.image_url}?width=1200&quality=75`}
+              src={getImageSrc(featuredEvent.image_url)}
               alt={featuredEvent.title}
               loading="lazy"
               decoding="async"
@@ -1493,7 +1495,7 @@ export default function Events() {
 
                   <div>
                     <img
-                      src={`${p.image_url}?width=800&quality=70`}
+                      src={getImageSrc(p.image_url)}
                       alt={p.title}
                       loading="lazy"
                       decoding="async"
@@ -1545,26 +1547,35 @@ export default function Events() {
             viewport={{ once: true }}
             className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 mb-20"
           >
-            {meetGreet.map((img) => (
-              <motion.div
-                key={img.id}
-                variants={fadeInUp}
-                className="rounded-2xl bg-muted overflow-hidden cursor-pointer"
-                onClick={() =>
-                  setLightbox({
-                    open: true,
-                    img: `${img.image_url}?width=1600&quality=80`,
-                  })
-                }
-              >
-                <img
-                  src={`${img.image_url}?width=600&quality=65`}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-[420px] w-full object-cover"
-                />
-              </motion.div>
-            ))}
+            {meetGreet.map((img) => {
+              const imageSrc = getImageSrc(img.image_url);
+
+              if (!imageSrc) {
+                return null;
+              }
+
+              return (
+                <motion.div
+                  key={img.id}
+                  variants={fadeInUp}
+                  className="rounded-2xl bg-muted overflow-hidden cursor-pointer"
+                  onClick={() =>
+                    setLightbox({
+                      open: true,
+                      img: imageSrc,
+                    })
+                  }
+                >
+                  <img
+                    src={imageSrc}
+                    alt="Meet & Greet"
+                    loading="lazy"
+                    decoding="async"
+                    className="h-[420px] w-full object-cover"
+                  />
+                </motion.div>
+              );
+            })}
           </motion.div>
 
           {/* SUMMIT */}
@@ -1579,20 +1590,29 @@ export default function Events() {
             viewport={{ once: true }}
             className="grid sm:grid-cols-2 md:grid-cols-3 gap-6"
           >
-            {summitGallery.map((img) => (
-              <motion.div
-                key={img.id}
-                variants={fadeInUp}
-                className="rounded-2xl overflow-hidden bg-muted"
-              >
-                <img
-                  src={`${img.image_url}?width=600&quality=65`}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-56 w-full object-cover"
-                />
-              </motion.div>
-            ))}
+            {summitGallery.map((img) => {
+              const imageSrc = getImageSrc(img.image_url);
+
+              if (!imageSrc) {
+                return null;
+              }
+
+              return (
+                <motion.div
+                  key={img.id}
+                  variants={fadeInUp}
+                  className="rounded-2xl overflow-hidden bg-muted"
+                >
+                  <img
+                    src={imageSrc}
+                    alt="Summit"
+                    loading="lazy"
+                    decoding="async"
+                    className="h-56 w-full object-cover"
+                  />
+                </motion.div>
+              );
+            })}
           </motion.div>
         </div>
       </section>
