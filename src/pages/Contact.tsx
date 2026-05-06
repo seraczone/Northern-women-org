@@ -3,8 +3,8 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 import {
   Mail,
   Phone,
@@ -14,6 +14,13 @@ import {
   Instagram,
   Send,
 } from "lucide-react";
+
+type ContactSubmissionResponse = {
+  success: boolean;
+  messageSaved: boolean;
+  emailSent: boolean;
+  error?: string;
+};
 
 const Contact = () => {
   const { toast } = useToast();
@@ -33,10 +40,15 @@ const Contact = () => {
         .value.trim(),
     };
 
-    const { error } = await supabase.from("contact_messages").insert([formData]);
+    const { data, error } = await supabase.functions.invoke(
+      "send-contact-email",
+      {
+        body: formData,
+      }
+    );
 
     if (error) {
-      console.error("Contact insert error:", error);
+      console.error("Contact submit error:", error);
       toast({
         title: "Message failed",
         description: "Something went wrong. Please try again.",
@@ -45,15 +57,15 @@ const Contact = () => {
       return;
     }
 
-    const { error: emailError } = await supabase.functions.invoke(
-      "send-contact-email",
-      {
-        body: formData,
-      }
-    );
+    const response = (data as ContactSubmissionResponse | null) ?? {
+      success: false,
+      messageSaved: false,
+      emailSent: false,
+      error: "Unexpected response from contact service.",
+    };
 
-    if (emailError) {
-      console.error("Contact email error:", emailError);
+    if (!response.success && response.messageSaved && !response.emailSent) {
+      console.error("Contact email error:", response.error);
       toast({
         title: "Message saved, email failed",
         description:
@@ -61,6 +73,16 @@ const Contact = () => {
         variant: "destructive",
       });
       form.reset();
+      return;
+    }
+
+    if (!response.success) {
+      console.error("Contact submit error:", response.error);
+      toast({
+        title: "Message failed",
+        description: response.error || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
       return;
     }
 
