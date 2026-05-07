@@ -2,10 +2,11 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft } from "lucide-react";
 import Slider from "react-slick";
+import type { CustomArrowProps, Settings } from "react-slick";
 import { motion } from "framer-motion";
 
 const HeroSection = () => {
-  const CustomPrevArrow = ({ onClick, className }: any) => {
+  const CustomPrevArrow = ({ onClick, className }: CustomArrowProps) => {
     return (
       <button
         className={className}
@@ -17,7 +18,7 @@ const HeroSection = () => {
     );
   };
 
-  const CustomNextArrow = ({ onClick, className }: any) => {
+  const CustomNextArrow = ({ onClick, className }: CustomArrowProps) => {
     return (
       <button
         className={className}
@@ -29,7 +30,7 @@ const HeroSection = () => {
     );
   };
 
-  const settings = {
+  const settings: Settings = {
     dots: true,
     infinite: true,
     speed: 500,
@@ -51,6 +52,11 @@ const HeroSection = () => {
             <img
               src="https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/hero-women1.jpg"
               alt="Empowered Northern Women 1"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+              width={1600}
+              height={900}
               className="w-full h-full object-cover"
             />
           </div>
@@ -58,6 +64,10 @@ const HeroSection = () => {
             <img
               src="https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/hero-women2.jpg"
               alt="Empowered Northern Women 2"
+              loading="lazy"
+              decoding="async"
+              width={1600}
+              height={900}
               className="w-full h-full object-cover"
             />
           </div>
@@ -65,6 +75,10 @@ const HeroSection = () => {
             <img
               src="https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/hero-women3.jpg"
               alt="Empowered Northern Women 3"
+              loading="lazy"
+              decoding="async"
+              width={1600}
+              height={900}
               className="w-full h-full object-cover"
             />
           </div>
@@ -72,6 +86,10 @@ const HeroSection = () => {
             <img
               src="https://ponlvomzjoxsfrrdzwqz.supabase.co/storage/v1/object/public/assets/hero-women4.jpg"
               alt="Empowered Northern Women 4"
+              loading="lazy"
+              decoding="async"
+              width={1600}
+              height={900}
               className="w-full h-full object-cover"
             />
           </div>

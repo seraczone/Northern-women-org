@@ -1,10 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Edit3, Plus, RefreshCw, Trash2, Video } from "lucide-react";
 
 import AdminLayout from "./AdminLayout";
 import MediaPicker from "@/components/MediaPicker";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import { getGalleryImageSrc, sortGalleryItems } from "@/lib/eventGallery";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -118,7 +119,7 @@ export default function AdminEvents() {
   const [galleryForm, setGalleryForm] = useState<GalleryForm>(emptyGalleryForm);
   const [videoForm, setVideoForm] = useState<VideoForm>(emptyVideoForm);
 
-  const fetchEventsData = async () => {
+  const fetchEventsData = useCallback(async () => {
     setLoading(true);
 
     const [featuredResponse, programsResponse, galleryResponse, videoResponse] = await Promise.all([
@@ -173,19 +174,37 @@ export default function AdminEvents() {
       return emptyGalleryForm;
     });
     setLoading(false);
-  };
+  }, [toast]);
 
   useEffect(() => {
     void fetchEventsData();
-  }, []);
+  }, [fetchEventsData]);
 
   const meetGreetGallery = useMemo(
-    () => galleryItems.filter((item) => item.event_key === "meet-greet"),
+    () => sortGalleryItems(galleryItems.filter((item) => item.event_key === "meet-greet")),
     [galleryItems],
   );
 
   const summitGallery = useMemo(
-    () => galleryItems.filter((item) => item.event_key === "summit-2025"),
+    () => sortGalleryItems(galleryItems.filter((item) => item.event_key === "summit-2025")),
+    [galleryItems],
+  );
+
+  const galleryItemsNeedingUrlSync = useMemo(
+    () =>
+      galleryItems.filter((item) => {
+        const currentUrl = item.image_url?.trim() ?? "";
+
+        if (!currentUrl) {
+          return false;
+        }
+
+        if (item.event_key !== "meet-greet" && item.event_key !== "summit-2025") {
+          return false;
+        }
+
+        return getGalleryImageSrc(currentUrl) !== currentUrl;
+      }),
     [galleryItems],
   );
 
@@ -410,6 +429,60 @@ export default function AdminEvents() {
     setSaving(false);
     toast({
       title: "Gallery image deleted",
+    });
+  };
+
+  const syncGalleryUrlsToWebp = async () => {
+    if (galleryItemsNeedingUrlSync.length === 0) {
+      toast({
+        title: "Gallery URLs already synced",
+        description: "The meet and summit gallery rows already point to their current render URLs.",
+      });
+      return;
+    }
+
+    setSaving(true);
+
+    let updatedCount = 0;
+    let firstErrorMessage: string | null = null;
+
+    for (const item of galleryItemsNeedingUrlSync) {
+      const response = await supabase
+        .from("event_gallery")
+        .update({ image_url: getGalleryImageSrc(item.image_url) })
+        .eq("id", item.id)
+        .select("id");
+
+      if (response.error) {
+        firstErrorMessage = response.error.message;
+        break;
+      }
+
+      updatedCount += response.data?.length ?? 0;
+    }
+
+    await fetchEventsData();
+    setSaving(false);
+
+    if (firstErrorMessage) {
+      reportError(
+        "Unable to sync all gallery URLs",
+        firstErrorMessage,
+      );
+      return;
+    }
+
+    if (updatedCount !== galleryItemsNeedingUrlSync.length) {
+      reportError(
+        "Gallery URL sync incomplete",
+        "Supabase did not confirm updates for every gallery row. Sign in again and retry, or review the event_gallery update policy.",
+      );
+      return;
+    }
+
+    toast({
+      title: "Gallery URLs synced",
+      description: `${updatedCount} gallery image URLs were updated to .webp.`,
     });
   };
 
@@ -696,6 +769,26 @@ export default function AdminEvents() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            <div className="flex flex-col gap-3 rounded-lg border border-dashed p-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="font-medium">Stored gallery URL sync</p>
+                <p className="text-sm text-muted-foreground">
+                  {galleryItemsNeedingUrlSync.length === 0
+                    ? "All meet and summit gallery rows are already synced."
+                    : `${galleryItemsNeedingUrlSync.length} gallery rows still store .jpg URLs. Sync them to .webp in Supabase.`}
+                </p>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={syncGalleryUrlsToWebp}
+                disabled={loading || saving || galleryItemsNeedingUrlSync.length === 0}
+              >
+                Sync URLs to .webp
+              </Button>
+            </div>
+
             <div className="space-y-4 rounded-lg border p-4">
               <div className="grid gap-4 md:grid-cols-3">
                 <select
@@ -735,7 +828,7 @@ export default function AdminEvents() {
 
               {galleryForm.image_url && (
                 <img
-                  src={galleryForm.image_url}
+                  src={getGalleryImageSrc(galleryForm.image_url)}
                   alt="Gallery preview"
                   className="h-56 w-full rounded-lg object-cover"
                 />
@@ -846,7 +939,7 @@ function GallerySection({
             <div key={item.id} className="rounded-lg border p-3">
               {item.image_url && (
                 <img
-                  src={item.image_url}
+                  src={getGalleryImageSrc(item.image_url)}
                   alt={title}
                   className="mb-3 h-40 w-full rounded-lg object-cover"
                 />

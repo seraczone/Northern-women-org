@@ -1269,6 +1269,7 @@ import { ArrowRight, Calendar, MapPin, Users, Clock } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { getGalleryImageSrc, sortGalleryItems } from "@/lib/eventGallery";
 
 /* ================= ANIMATIONS (USED ELSEWHERE) ================= */
 const container: Variants = {
@@ -1294,6 +1295,16 @@ type ProgramRecord = {
   description: string | null;
   image_url: string | null;
   order_index: number | null;
+};
+
+type FeaturedEventRecord = {
+  id: number;
+  title: string;
+  date: string | null;
+  time: string | null;
+  location: string | null;
+  attendees: string | null;
+  image_url: string | null;
 };
 
 type GalleryRecord = {
@@ -1350,7 +1361,7 @@ export default function Events() {
   });
 
   const [programs, setPrograms] = useState<ProgramRecord[]>([]);
-  const [featuredEvent, setFeaturedEvent] = useState<any>(null);
+  const [featuredEvent, setFeaturedEvent] = useState<FeaturedEventRecord | null>(null);
   const [meetGreet, setMeetGreet] = useState<GalleryRecord[]>([]);
   const [summitGallery, setSummitGallery] = useState<GalleryRecord[]>([]);
   const [eventVideo, setEventVideo] = useState<VideoRecord | null>(null);
@@ -1385,8 +1396,8 @@ export default function Events() {
 
       setPrograms(programsData || []);
       setFeaturedEvent(featured);
-      setMeetGreet(meet || []);
-      setSummitGallery(summit || []);
+      setMeetGreet(sortGalleryItems(meet || []));
+      setSummitGallery(sortGalleryItems(summit || []));
       setEventVideo(video);
     };
 
@@ -1548,7 +1559,8 @@ export default function Events() {
             className="grid sm:grid-cols-2 md:grid-cols-3 gap-6 mb-20"
           >
             {meetGreet.map((img) => {
-              const imageSrc = getImageSrc(img.image_url);
+              const imageSrc = getGalleryImageSrc(img.image_url);
+              const isPortrait = img.orientation === "portrait";
 
               if (!imageSrc) {
                 return null;
@@ -1571,7 +1583,14 @@ export default function Events() {
                     alt="Meet & Greet"
                     loading="lazy"
                     decoding="async"
-                    className="h-[420px] w-full object-cover"
+                    fetchPriority="low"
+                    width={isPortrait ? 600 : 800}
+                    height={isPortrait ? 800 : 600}
+                    className={
+                      isPortrait
+                        ? "h-[420px] w-full object-cover aspect-[3/4]"
+                        : "h-64 w-full object-cover aspect-[4/3]"
+                    }
                   />
                 </motion.div>
               );
@@ -1591,7 +1610,8 @@ export default function Events() {
             className="grid sm:grid-cols-2 md:grid-cols-3 gap-6"
           >
             {summitGallery.map((img) => {
-              const imageSrc = getImageSrc(img.image_url);
+              const imageSrc = getGalleryImageSrc(img.image_url);
+              const isPortrait = img.orientation === "portrait";
 
               if (!imageSrc) {
                 return null;
@@ -1608,7 +1628,14 @@ export default function Events() {
                     alt="Summit"
                     loading="lazy"
                     decoding="async"
-                    className="h-56 w-full object-cover"
+                    fetchPriority="low"
+                    width={isPortrait ? 600 : 800}
+                    height={isPortrait ? 800 : 600}
+                    className={
+                      isPortrait
+                        ? "h-[420px] w-full object-contain aspect-[3/4]"
+                        : "h-56 w-full object-cover aspect-[4/3]"
+                    }
                   />
                 </motion.div>
               );
