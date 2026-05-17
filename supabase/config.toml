@@ -400,6 +400,12 @@ verify_jwt = true
 import_map = "./functions/send-registration-email/deno.json"
 entrypoint = "./functions/send-registration-email/index.ts"
 
+[functions.send-summit-email]
+enabled = true
+verify_jwt = true
+import_map = "./functions/send-summit-email/deno.json"
+entrypoint = "./functions/send-summit-email/index.ts"
+
 [functions.send-newsletter-email]
 enabled = true
 verify_jwt = true
@@ -411,3 +417,9 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/verify-event-registration/deno.json"
 entrypoint = "./functions/verify-event-registration/index.ts"
+
+[functions.verify-summit-registration]
+enabled = true
+verify_jwt = false
+import_map = "./functions/verify-summit-registration/deno.json"
+entrypoint = "./functions/verify-summit-registration/index.ts"

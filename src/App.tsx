@@ -19,6 +19,7 @@ import OurTeam from "./pages/OurTeam";
 import RegisterEvent from "./pages/RegisterEvent";
 import RegisterSummit2026 from "./pages/RegisterSummit2026";
 import VerifyEventRegistration from "./pages/VerifyEventRegistration";
+import VerifySummitRegistration from "./pages/VerifySummitRegistration";
 import NotFound from "./pages/NotFound";
 
 // Admin pages
@@ -55,6 +56,7 @@ const App = () => (
           <Route path="/register-event" element={<RegisterEvent />} />
           <Route path="/verify-event-registration" element={<VerifyEventRegistration />} />
           <Route path="/summit-2026/register" element={<RegisterSummit2026 />} />
+          <Route path="/verify-summit-registration" element={<VerifySummitRegistration />} />
           <Route path="/get-involved" element={<GetInvolved />} />
           <Route path="/join-us" element={<JoinUs />} />
           <Route path="/our-team" element={<OurTeam />} />

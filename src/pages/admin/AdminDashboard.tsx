@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
+import { formatNaira } from "@/lib/summitRegistration";
 
 import AdminLayout from "./AdminLayout";
 
@@ -24,10 +25,10 @@ interface Registration {
 
 interface SummitRegistration {
   id: string;
-  first_name: string;
-  last_name: string;
+  full_name: string;
   email: string;
-  occupation: string;
+  payment_status: string;
+  total_amount: number;
   created_at: string;
 }
 
@@ -243,6 +244,7 @@ export default function AdminDashboard() {
             <table className="mb-6 w-full overflow-hidden rounded-xl border">
               <thead className="bg-muted">
                 <tr>
+                  <th className="p-2">S/N</th>
                   <th className="p-2">Name</th>
                   <th className="p-2">Email</th>
                   <th className="p-2">Event</th>
@@ -251,8 +253,9 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {registrations.map((registration) => (
+                {registrations.map((registration, index) => (
                   <tr key={registration.id} className="border-t">
+                    <td className="p-2">{index + 1}</td>
                     <td className="p-2">
                       {registration.first_name} {registration.last_name}
                     </td>
@@ -283,21 +286,23 @@ export default function AdminDashboard() {
             <table className="mb-6 w-full overflow-hidden rounded-xl border">
               <thead className="bg-muted">
                 <tr>
+                  <th className="p-2">S/N</th>
                   <th className="p-2">Name</th>
                   <th className="p-2">Email</th>
-                  <th className="p-2">Occupation</th>
+                  <th className="p-2">Amount</th>
+                  <th className="p-2">Status</th>
                   <th className="p-2">Date</th>
                   <th className="p-2">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {summitRegistrations.map((registration) => (
+                {summitRegistrations.map((registration, index) => (
                   <tr key={registration.id} className="border-t">
-                    <td className="p-2">
-                      {registration.first_name} {registration.last_name}
-                    </td>
+                    <td className="p-2">{index + 1}</td>
+                    <td className="p-2">{registration.full_name}</td>
                     <td className="p-2">{registration.email}</td>
-                    <td className="p-2">{registration.occupation}</td>
+                    <td className="p-2">{formatNaira(registration.total_amount || 0)}</td>
+                    <td className="p-2 capitalize">{registration.payment_status}</td>
                     <td className="p-2">{new Date(registration.created_at).toLocaleDateString()}</td>
                     <td className="p-2">
                       <Button
@@ -323,6 +328,7 @@ export default function AdminDashboard() {
             <table className="mb-6 w-full overflow-hidden rounded-xl border">
               <thead className="bg-muted">
                 <tr>
+                  <th className="p-2">S/N</th>
                   <th className="p-2">Name</th>
                   <th className="p-2">Email</th>
                   <th className="p-2">Occupation</th>
@@ -331,8 +337,9 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {joinUsRegistrations.map((registration) => (
+                {joinUsRegistrations.map((registration, index) => (
                   <tr key={registration.id} className="border-t">
+                    <td className="p-2">{index + 1}</td>
                     <td className="p-2">
                       {registration.first_name} {registration.last_name}
                     </td>
@@ -363,6 +370,7 @@ export default function AdminDashboard() {
             <table className="mb-6 w-full overflow-hidden rounded-xl border">
               <thead className="bg-muted">
                 <tr>
+                  <th className="p-2">S/N</th>
                   <th className="p-2">Name</th>
                   <th className="p-2">Email</th>
                   <th className="p-2">Phone</th>
@@ -371,8 +379,9 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {volunteerApplications.map((application) => (
+                {volunteerApplications.map((application, index) => (
                   <tr key={application.id} className="border-t">
+                    <td className="p-2">{index + 1}</td>
                     <td className="p-2">
                       {application.first_name} {application.last_name}
                     </td>
@@ -403,6 +412,7 @@ export default function AdminDashboard() {
             <table className="mb-6 w-full overflow-hidden rounded-xl border">
               <thead className="bg-muted">
                 <tr>
+                  <th className="p-2">S/N</th>
                   <th className="p-2">Email</th>
                   <th className="p-2">Source</th>
                   <th className="p-2">Date</th>
@@ -410,8 +420,9 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {newsletterSubscribers.map((subscriber) => (
+                {newsletterSubscribers.map((subscriber, index) => (
                   <tr key={subscriber.id} className="border-t">
+                    <td className="p-2">{index + 1}</td>
                     <td className="p-2">{subscriber.email}</td>
                     <td className="p-2">{subscriber.source}</td>
                     <td className="p-2">{new Date(subscriber.created_at).toLocaleDateString()}</td>

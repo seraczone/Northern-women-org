@@ -14,8 +14,10 @@ const RESEND_FROM_EMAIL =
   Deno.env.get("RESEND_FROM_EMAIL") ??
   "Northern Women Initiative <onboarding@resend.dev>";
 const CONTACT_ADMIN_EMAIL = Deno.env.get("CONTACT_ADMIN_EMAIL");
-const SUPPORT_EMAIL = Deno.env.get("SUPPORT_EMAIL") ?? CONTACT_ADMIN_EMAIL;
-const SUPPORT_WHATSAPP_NUMBER = Deno.env.get("SUPPORT_WHATSAPP_NUMBER") ?? "";
+const SUPPORT_EMAIL =
+  Deno.env.get("SUPPORT_EMAIL") ?? CONTACT_ADMIN_EMAIL ?? "support@northernwomen.org";
+const SUPPORT_WHATSAPP_NUMBER =
+  Deno.env.get("SUPPORT_WHATSAPP_NUMBER") ?? "+234 906 737 9828";
 const EVENT_TIMEZONE = Deno.env.get("EVENT_TIMEZONE") ?? "Africa/Lagos";
 const PUBLIC_SITE_URL = (
   Deno.env.get("PUBLIC_SITE_URL") ?? "https://northernwomeninitiative.org"
@@ -71,9 +73,9 @@ const flowContent: Record<Exclude<Flow, "event">, FlowContent> = {
     adminLabel: "Summit 2026 Registration",
     confirmationTitle: "Northern Women Summit 2026 Registration",
     submittedText:
-      "We have successfully received your summit registration. Important event updates, participation guidance, and future announcements will be shared with you by email.",
+      "We have received your summit registration and payment details. Your attendance will be confirmed after payment verification is completed.",
     updatedText:
-      "Your summit registration has been updated successfully. We will use your latest details for future summit communication.",
+      "Your summit registration has been updated successfully. Any ongoing payment verification will continue using your latest details.",
   },
   volunteer: {
     adminLabel: "Volunteer Application",
@@ -119,21 +121,32 @@ const formatLabel = (key: string) =>
     .replaceAll("_", " ")
     .replace(/\b\w/g, (match) => match.toUpperCase());
 
+const formatDisplayValue = (value: unknown) => {
+  if (typeof value === "string") {
+    return value.trim();
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? String(value) : "";
+  }
+
+  if (typeof value === "boolean") {
+    return value ? "Yes" : "No";
+  }
+
+  return "";
+};
+
 const buildSubmissionRows = (submission: Record<string, unknown>) =>
   Object.entries(submission)
-    .filter(([, value]) => {
-      if (typeof value !== "string") {
-        return false;
-      }
-
-      return value.trim().length > 0;
-    })
+    .map(([key, value]) => [key, formatDisplayValue(value)] as const)
+    .filter(([, value]) => value.length > 0)
     .map(
       ([key, value]) =>
         `<tr><td style="padding:8px 12px;border:1px solid #ddd;font-weight:600;">${escapeHtml(
           formatLabel(key),
         )}</td><td style="padding:8px 12px;border:1px solid #ddd;">${escapeHtml(
-          String(value),
+          value,
         )}</td></tr>`,
     )
     .join("");
@@ -477,7 +490,7 @@ const buildDefaultUserEmailHtml = ({
 `;
 
 const getSubmissionText = (submission: Record<string, unknown>, key: string) =>
-  String(submission[key] ?? "").trim();
+  formatDisplayValue(submission[key]);
 
 const buildSummaryList = (items: RegistrationSummaryItem[]) => {
   const renderedItems = items
