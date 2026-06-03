@@ -1,5 +1,4 @@
 create extension if not exists pgcrypto;
-
 do $$
 begin
   if to_regclass('public.event_registration') is null then

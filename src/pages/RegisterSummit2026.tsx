@@ -908,11 +908,11 @@ export default function RegisterSummit2026() {
                     </p>
                     <p>
                       <strong className="text-foreground">Account Name:</strong>{" "}
-                      Northern Women Summit
+                      Northern Women Initiative For Empowerment, Growth and Development
                     </p>
                     <p>
                       <strong className="text-foreground">Account Number:</strong>{" "}
-                      1234567890
+                      1310491614
                     </p>
                   </div>
                 </div>

@@ -46,17 +46,14 @@ begin
   );
 end;
 $$;
-
 select public.normalize_registration_emails(
   'public.join_us_registrations',
   'join_us_registrations_email_normalized_key'
 );
-
 select public.normalize_registration_emails(
   'public.summit_2026_registrations',
   'summit_2026_registrations_email_normalized_key'
 );
-
 do $$
 begin
   if to_regclass('public.volunteer_applications') is not null then
@@ -67,5 +64,4 @@ begin
   end if;
 end;
 $$;
-
 drop function if exists public.normalize_registration_emails(regclass, text);
