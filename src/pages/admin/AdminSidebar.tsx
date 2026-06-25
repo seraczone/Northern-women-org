@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import {
   Calendar,
   Mail,
+  MessageSquare,
   Heart,
   Image,
   LayoutDashboard,
@@ -52,6 +53,13 @@ export default function AdminSidebar() {
           className={({ isActive }) => `${linkClass} ${isActive ? activeClass : ""}`}
         >
           <Ticket size={18} /> Summit 2026
+        </NavLink>
+
+        <NavLink
+          to="/admin/event-feedback"
+          className={({ isActive }) => `${linkClass} ${isActive ? activeClass : ""}`}
+        >
+          <MessageSquare size={18} /> Event Feedback
         </NavLink>
 
         <NavLink

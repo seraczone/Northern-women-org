@@ -1265,7 +1265,7 @@
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Calendar, MapPin, Users, Clock } from "lucide-react";
+import { ArrowRight, Calendar, MapPin, MessageSquare, Users, Clock } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -1601,6 +1601,18 @@ export default function Events() {
           <h3 className="text-3xl font-serif font-bold text-burgundy mb-8 text-center">
             Northern Women Summit 2025
           </h3>
+
+          <div className="mx-auto mb-10 max-w-3xl text-center">
+            <p className="text-muted-foreground">
+              Attended a past event, follow our work, or planning to join a future
+              Northern Women event? Share your feedback and help shape what comes next.
+            </p>
+            <Button variant="gold" className="mt-5" asChild>
+              <Link to="/event-feedback">
+                Share Feedback <MessageSquare size={18} />
+              </Link>
+            </Button>
+          </div>
 
           <motion.div
             variants={container}
