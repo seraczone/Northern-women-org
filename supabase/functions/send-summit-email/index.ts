@@ -107,6 +107,16 @@ const formatCurrency = (amount?: number | null) => {
   }).format(amount);
 };
 
+const formatPdfCurrency = (amount?: number | null) => {
+  if (typeof amount !== "number" || Number.isNaN(amount)) {
+    return "";
+  }
+
+  return `NGN ${new Intl.NumberFormat("en-NG", {
+    maximumFractionDigits: 0,
+  }).format(amount)}`;
+};
+
 const formatTicketType = (value?: string | null) => {
   if (!value) {
     return "";
@@ -460,7 +470,7 @@ const buildApprovedPassPdf = async (registration: RegistrationPayload) => {
   drawLabelValue({
     page,
     label: "Amount Confirmed",
-    value: formatCurrency(registration.total_amount) || "Confirmed",
+    value: formatPdfCurrency(registration.total_amount) || "Confirmed",
     x: leftColumnX,
     y: columnTop - 336,
     width: 250,
