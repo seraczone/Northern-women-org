@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -69,7 +68,7 @@ export default function EventFeedback() {
       return;
     }
 
-    if (!formData.joined_reason.trim()) {
+    if (!formData.join_reason.trim()) {
       toast({
         title: "Tell us about you",
         description: "Please share what made you join Northern Women.",
@@ -87,31 +86,21 @@ export default function EventFeedback() {
       return;
     }
 
-    if (!formData.consent) {
-      toast({
-        title: "Consent required",
-        description: "Please confirm that Northern Women can review your feedback.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
 
-    const { error } = await supabase.from("event_feedback").insert([
+    const { error } = await supabase.from("northern_women_feedback").insert([
       {
         full_name: formData.full_name.trim(),
         business_name: toNullableFeedbackValue(formData.business_name),
-        social_handle: toNullableFeedbackValue(formData.social_handle),
+        instagram_handle: toNullableFeedbackValue(formData.instagram_handle),
         contact_number: toNullableFeedbackValue(formData.contact_number),
-        joined_reason: formData.joined_reason.trim(),
+        join_reason: formData.join_reason.trim(),
         experience: formData.experience.trim(),
         expectations: toNullableFeedbackValue(formData.expectations),
         requested_support: toNullableFeedbackValue(formData.requested_support),
         improvement_areas: toNullableFeedbackValue(formData.improvement_areas),
         suggestions: toNullableFeedbackValue(formData.suggestions),
         final_message: toNullableFeedbackValue(formData.final_message),
-        consent: formData.consent,
       },
     ]);
 
@@ -269,10 +258,10 @@ export default function EventFeedback() {
                     >
                       <Input
                         id="social_handle"
-                        value={formData.social_handle}
+                        value={formData.instagram_handle}
                         placeholder="@yourhandle"
                         onChange={(event) =>
-                          updateFormData("social_handle", event.target.value)
+                          updateFormData("instagram_handle", event.target.value)
                         }
                       />
                     </Field>
@@ -295,10 +284,10 @@ export default function EventFeedback() {
                   <Field label="2. What made you join Northern Women?" required>
                     <Textarea
                       rows={4}
-                      value={formData.joined_reason}
+                      value={formData.join_reason}
                       placeholder="Share what drew you to Northern Women."
                       onChange={(event) =>
-                        updateFormData("joined_reason", event.target.value)
+                        updateFormData("join_reason", event.target.value)
                       }
                     />
                   </Field>
@@ -372,23 +361,6 @@ export default function EventFeedback() {
                     />
                   </Field>
                 </section>
-
-                <label className="flex items-start gap-3 rounded-2xl border border-border bg-background p-4">
-                  <Checkbox
-                    checked={formData.consent}
-                    onCheckedChange={(checked) =>
-                      updateFormData("consent", checked === true)
-                    }
-                    className="mt-1"
-                  />
-                  <div className="space-y-1">
-                    <p className="font-medium text-foreground">Final Confirmation</p>
-                    <p className="text-sm text-muted-foreground">
-                      I confirm that Northern Women can review this feedback to
-                      improve future events, programs, and community support.
-                    </p>
-                  </div>
-                </label>
 
                 <Button
                   type="submit"

@@ -26,7 +26,6 @@ const exportHeaders = [
   "Improvement Areas",
   "Suggestions",
   "Final Message",
-  "Consent",
   "Submitted At",
 ];
 
@@ -114,7 +113,7 @@ const buildPdfBlob = (title: string, rows: string[][]) => {
       ["Improve", row[10]],
       ["Suggestions", row[11]],
       ["Final", row[12]],
-      ["Submitted", row[14]],
+      ["Submitted", row[13]],
     ].forEach(([label, value]) => {
       wrapPdfText(`${label}: ${value || "-"}`).forEach((line) => addLine(line, 9));
     });
@@ -186,7 +185,7 @@ export default function AdminEventFeedback() {
     setLoading(true);
 
     const { data, error } = await supabase
-      .from("event_feedback")
+      .from("northern_women_feedback")
       .select("*")
       .order("created_at", { ascending: sortOrder === "asc" });
 
@@ -219,9 +218,9 @@ export default function AdminEventFeedback() {
       [
         entry.full_name,
         entry.business_name || "",
-        entry.social_handle || "",
+        entry.instagram_handle || "",
         entry.contact_number || "",
-        entry.joined_reason,
+        entry.join_reason,
         entry.experience,
         entry.expectations || "",
         entry.requested_support || "",
@@ -242,16 +241,15 @@ export default function AdminEventFeedback() {
       entry.id,
       entry.full_name,
       entry.business_name || "",
-      entry.social_handle || "",
+      entry.instagram_handle || "",
       entry.contact_number || "",
-      entry.joined_reason,
+      entry.join_reason,
       entry.experience,
       entry.expectations || "",
       entry.requested_support || "",
       entry.improvement_areas || "",
       entry.suggestions || "",
       entry.final_message || "",
-      entry.consent ? "Yes" : "No",
       new Date(entry.created_at).toISOString(),
       ]),
     [filteredFeedback],
@@ -311,7 +309,7 @@ export default function AdminEventFeedback() {
 
     setDeletingId(id);
 
-    const { error } = await supabase.from("event_feedback").delete().eq("id", id);
+    const { error } = await supabase.from("northern_women_feedback").delete().eq("id", id);
 
     if (error) {
       toast({
@@ -386,7 +384,7 @@ export default function AdminEventFeedback() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                {feedback.filter((entry) => Boolean(entry.social_handle)).length}
+                {feedback.filter((entry) => Boolean(entry.instagram_handle)).length}
               </p>
             </CardContent>
           </Card>
@@ -452,14 +450,14 @@ export default function AdminEventFeedback() {
                             {formatValue(entry.business_name)}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {formatValue(entry.social_handle)}
+                            {formatValue(entry.instagram_handle)}
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {formatValue(entry.contact_number)}
                           </p>
                         </td>
                         <td className="min-w-72 border p-3 align-top text-sm">
-                          {entry.joined_reason}
+                          {entry.join_reason}
                         </td>
                         <td className="min-w-72 border p-3 align-top text-sm">
                           <p>{entry.experience}</p>

@@ -1,16 +1,15 @@
 export type EventFeedbackFormData = {
   full_name: string;
   business_name: string;
-  social_handle: string;
+  instagram_handle: string;
   contact_number: string;
-  joined_reason: string;
+  join_reason: string;
   experience: string;
   expectations: string;
   requested_support: string;
   improvement_areas: string;
   suggestions: string;
   final_message: string;
-  consent: boolean;
 };
 
 export type EventFeedbackRecord = EventFeedbackFormData & {
@@ -22,16 +21,15 @@ export type EventFeedbackRecord = EventFeedbackFormData & {
 export const eventFeedbackInitialFormData: EventFeedbackFormData = {
   full_name: "",
   business_name: "",
-  social_handle: "",
+  instagram_handle: "",
   contact_number: "",
-  joined_reason: "",
+  join_reason: "",
   experience: "",
   expectations: "",
   requested_support: "",
   improvement_areas: "",
   suggestions: "",
   final_message: "",
-  consent: false,
 };
 
 export const toNullableFeedbackValue = (value: string) => {
