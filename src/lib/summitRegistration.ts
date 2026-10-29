@@ -6,6 +6,7 @@ export const SUMMIT_DATE_LABEL = "November 1, 2026";
 export const SUMMIT_VENUE_LABEL = "International Conference Centre, Abuja";
 export const SUMMIT_BASE_FEE = 70000;
 export const SUMMIT_STANDARD_TICKET_TYPE = "standard" as const;
+export const SUMMIT_REGISTRATION_CLOSE_AT = "2026-10-29T22:45:00+01:00";
 
 export type YesNoChoice = "" | "yes" | "no";
 export type TicketType = "standard" | "group" | "vip";
@@ -203,6 +204,16 @@ export const summitInitialFormData = (
 
 export function generateRegistrationReference() {
   return `NWS2026-${Math.floor(10000 + Math.random() * 90000)}`;
+}
+
+export function isSummitRegistrationClosed(date = new Date()) {
+  const currentDate = new Date(date);
+  const registrationCloseDate = new Date(SUMMIT_REGISTRATION_CLOSE_AT);
+  return currentDate.getTime() >= registrationCloseDate.getTime();
+}
+
+export function getSummitRegistrationClosedMessage() {
+  return "The Summit 2026 registration form is no longer accepting submissions.";
 }
 
 export function getTicketOption(ticketType: TicketType) {
