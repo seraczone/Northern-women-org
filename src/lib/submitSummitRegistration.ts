@@ -6,6 +6,8 @@ import {
   buildReceiptStoragePath,
   calculateTicketTotal,
   getFirstNameFromFullName,
+  getSummitRegistrationClosedMessage,
+  isSummitRegistrationClosed,
   yesNoChoiceToBoolean,
 } from "@/lib/summitRegistration";
 
@@ -62,6 +64,13 @@ export async function submitSummitRegistration({
   formData,
   receiptFile,
 }: SubmitSummitRegistrationOptions): Promise<SubmitSummitRegistrationResult> {
+  if (isSummitRegistrationClosed()) {
+    return {
+      error: { message: getSummitRegistrationClosedMessage() },
+      notificationError: null,
+    };
+  }
+
   const fileValidationError = validateSummitReceiptFile(receiptFile);
 
   if (fileValidationError) {
