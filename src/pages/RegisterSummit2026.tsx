@@ -36,7 +36,9 @@ import {
   calculateTicketTotal,
   formatNaira,
   generateRegistrationReference,
+  getSummitRegistrationClosedMessage,
   industryOptions,
+  isSummitRegistrationClosed,
   nigeriaStates,
   paymentMethodOptions,
   referralSourceOptions,
@@ -170,6 +172,7 @@ export default function RegisterSummit2026() {
   const [formData, setFormData] = useState<SummitRegistrationFormData>(() =>
     summitInitialFormData(),
   );
+  const registrationClosed = isSummitRegistrationClosed();
 
   const totalAmount = calculateTicketTotal(SUMMIT_STANDARD_TICKET_TYPE, formData.quantity);
   const whatsappSupportHref = `https://wa.me/${SUMMIT_SUPPORT_WHATSAPP.replace(/\D/g, "")}`;
@@ -177,7 +180,7 @@ export default function RegisterSummit2026() {
   useEffect(() => {
     const savedDraft = window.localStorage.getItem(SUMMIT_REGISTRATION_DRAFT_KEY);
 
-    if (!savedDraft) {
+    if (!savedDraft || registrationClosed) {
       return;
     }
 
@@ -202,11 +205,15 @@ export default function RegisterSummit2026() {
     } catch {
       window.localStorage.removeItem(SUMMIT_REGISTRATION_DRAFT_KEY);
     }
-  }, []);
+  }, [registrationClosed]);
 
   useEffect(() => {
+    if (registrationClosed) {
+      return;
+    }
+
     window.localStorage.setItem(SUMMIT_REGISTRATION_DRAFT_KEY, JSON.stringify(formData));
-  }, [formData]);
+  }, [formData, registrationClosed]);
 
   const updateFormData = <Key extends keyof SummitRegistrationFormData>(
     key: Key,
@@ -436,6 +443,58 @@ export default function RegisterSummit2026() {
       variant: result.notificationError ? "destructive" : "default",
     });
   };
+
+  if (registrationClosed) {
+    return (
+      <Layout>
+        <section className="bg-gradient-hero py-20">
+          <div className="container-section">
+            <span className="text-secondary text-sm font-medium uppercase">
+              Summit Registration
+            </span>
+            <h1 className="mt-3 mb-6 text-4xl font-serif font-bold text-primary-foreground md:text-5xl">
+              Registration Closed
+            </h1>
+            <p className="max-w-3xl text-lg text-primary-foreground/90">
+              {getSummitRegistrationClosedMessage()}
+            </p>
+          </div>
+        </section>
+
+        <section className="section-padding bg-background">
+          <div className="container-section max-w-3xl">
+            <div className="rounded-[2rem] border bg-card p-8 shadow-card md:p-10">
+              <div className="flex items-center gap-3 text-primary">
+                <ShieldCheck className="h-8 w-8" />
+                <p className="text-sm font-semibold uppercase tracking-[0.2em]">
+                  Summit 2026
+                </p>
+              </div>
+
+              <h2 className="mt-6 text-3xl font-serif font-bold text-foreground">
+                The registration form is no longer accepting submissions.
+              </h2>
+
+              <p className="mt-4 text-base text-muted-foreground">
+                {getSummitRegistrationClosedMessage()}
+              </p>
+
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Button variant="gold" onClick={() => navigate("/events")}>
+                  Back to Events
+                </Button>
+                <Button variant="outline" asChild>
+                  <a href={whatsappSupportHref} target="_blank" rel="noreferrer">
+                    Contact Support
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
 
   if (success) {
     return (
