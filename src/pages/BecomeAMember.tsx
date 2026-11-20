@@ -1,18 +1,7 @@
 import Layout from "@/components/layout/Layout";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import {
-  ArrowRight,
-  BriefcaseBusiness,
-  CalendarDays,
-  Check,
-  GraduationCap,
-  HeartHandshake,
-  Lightbulb,
-  Network,
-  Sparkles,
-  Users,
-} from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, CalendarDays, Check, GraduationCap, HeartHandshake, Lightbulb, Network, Sparkles, Users } from "lucide-react";
 
 const benefits = [
   { icon: Network, title: "Meaningful connections", description: "Meet women across professions, communities, and generations who share a commitment to growth and collective progress." },
@@ -49,17 +38,11 @@ export default function BecomeAMember() {
         <div className="absolute -right-10 top-24 h-48 w-48 rounded-full border border-primary-foreground/10" aria-hidden="true" />
         <div className="container-section relative">
           <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 text-secondary font-medium text-sm uppercase tracking-wider">
-              <Sparkles size={16} aria-hidden="true" /> Membership
-            </span>
-            <h1 class="mt-4 mb-6 text-4xl font-serif font-bold text-primary-foreground md:text-6xl">Become a Member</h1>
-            <p className="text-lg leading-relaxed text-primary-foreground/90 md:text-xl">
-              Belong to a purposeful network of women shaping leadership, enterprise, and lasting impact across Northern Nigeria and beyond.
-            </p>
+            <span className="inline-flex items-center gap-2 text-secondary font-medium text-sm uppercase tracking-wider"><Sparkles size={16} aria-hidden="true" /> Membership</span>
+            <h1 className="mt-4 mb-6 text-4xl font-serif font-bold text-primary-foreground md:text-6xl">Become a Member</h1>
+            <p className="text-lg leading-relaxed text-primary-foreground/90 md:text-xl">Belong to a purposeful network of women shaping leadership, enterprise, and lasting impact across Northern Nigeria and beyond.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button type="button" variant="gold" size="xl" onClick={() => scrollToSection("membership-application")}>
-                Apply for Membership <ArrowRight size={20} aria-hidden="true" />
-              </Button>
+              <Button type="button" variant="gold" size="xl" onClick={() => scrollToSection("membership-application")}>Apply for Membership <ArrowRight size={20} aria-hidden="true" /></Button>
               <Button type="button" variant="heroOutline" size="xl" onClick={() => scrollToSection("membership-benefits")}>Explore Benefits</Button>
             </div>
           </div>
