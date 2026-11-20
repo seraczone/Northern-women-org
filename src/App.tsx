@@ -6,13 +6,13 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import ScrollToTop from "./components/ScrollToTop";
 
-// Public pages
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Programs from "./pages/Programs";
 import Events from "./pages/Events";
 import GetInvolved from "./pages/GetInvolved";
 import JoinUs from "./pages/JoinUs";
+import Membership from "./pages/Membership";
 import Contact from "./pages/Contact";
 import Donate from "./pages/Donate";
 import OurTeam from "./pages/OurTeam";
@@ -23,11 +23,11 @@ import VerifyEventRegistration from "./pages/VerifyEventRegistration";
 import VerifySummitRegistration from "./pages/VerifySummitRegistration";
 import NotFound from "./pages/NotFound";
 
-// Admin pages
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminGetInvolved from "./pages/admin/AdminGetInvolved";
 import AdminJoinUs from "./pages/admin/AdminJoinUs";
+import AdminMembership from "./pages/admin/AdminMembership";
 import AdminRegistrations from "./pages/admin/AdminRegistrations";
 import AdminSummitRegistrations from "./pages/admin/AdminSummitRegistrations";
 import AdminEventFeedback from "./pages/admin/AdminEventFeedback";
@@ -45,12 +45,9 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-
       <BrowserRouter>
         <ScrollToTop />
-
         <Routes>
-          {/* ===== PUBLIC ROUTES ===== */}
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
           <Route path="/programs" element={<Programs />} />
@@ -62,11 +59,11 @@ const App = () => (
           <Route path="/verify-summit-registration" element={<VerifySummitRegistration />} />
           <Route path="/get-involved" element={<GetInvolved />} />
           <Route path="/join-us" element={<JoinUs />} />
+          <Route path="/membership" element={<Membership />} />
           <Route path="/our-team" element={<OurTeam />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/donate" element={<Donate />} />
 
-          {/* ===== ADMIN ROUTES ===== */}
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/registrations" element={<AdminRegistrations />} />
@@ -74,6 +71,7 @@ const App = () => (
           <Route path="/admin/summit-registrations" element={<AdminSummitRegistrations />} />
           <Route path="/admin/event-feedback" element={<AdminEventFeedback />} />
           <Route path="/admin/join-us" element={<AdminJoinUs />} />
+          <Route path="/admin/membership" element={<AdminMembership />} />
           <Route path="/admin/quotes" element={<AdminQuotes />} />
           <Route path="/admin/programs" element={<AdminPrograms />} />
           <Route path="/admin/events" element={<AdminEvents />} />
@@ -81,7 +79,6 @@ const App = () => (
           <Route path="/admin/users" element={<AdminUsers />} />
           <Route path="/admin/newsletter" element={<AdminNewsletter />} />
 
-          {/* ===== FALLBACKS ===== */}
           <Route path="/404" element={<NotFound />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
