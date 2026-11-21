@@ -23,7 +23,7 @@ const PUBLIC_SITE_URL = (
   Deno.env.get("PUBLIC_SITE_URL") ?? "https://northernwomeninitiative.org"
 ).replace(/\/+$/, "");
 
-type Flow = "event" | "join_us" | "summit_2026" | "volunteer" | "membership";
+type Flow = "event" | "summit_2026" | "volunteer" | "membership";
 
 type FlowContent = {
   adminLabel: string;
@@ -61,14 +61,6 @@ type RegistrationSummaryItem = {
 };
 
 const flowContent: Record<Exclude<Flow, "event">, FlowContent> = {
-  join_us: {
-    adminLabel: "Join Us Registration",
-    confirmationTitle: "Join Us Registration",
-    submittedText:
-      "We have successfully received your Join Us registration. Our team will review your details and reach out when relevant opportunities for engagement and participation arise.",
-    updatedText:
-      "Your Join Us registration has been updated successfully. Any future follow-up will be based on your latest information.",
-  },
   summit_2026: {
     adminLabel: "Summit 2026 Registration",
     confirmationTitle: "Northern Women Summit 2026 Registration",
@@ -534,64 +526,6 @@ const buildSupportBlock = () => {
   `;
 };
 
-const buildJoinUsUserEmailHtml = ({
-  greeting,
-  content,
-  wasUpdate,
-  submission,
-}: {
-  greeting: string;
-  content: FlowContent;
-  wasUpdate: boolean;
-  submission: Record<string, unknown>;
-}) => {
-  const summary = buildSummaryList([
-    {
-      label: "Full Name",
-      value: `${getSubmissionText(submission, "first_name")} ${getSubmissionText(submission, "last_name")}`.trim(),
-    },
-    {
-      label: "Email",
-      value: getSubmissionText(submission, "email"),
-    },
-    {
-      label: "Phone",
-      value: getSubmissionText(submission, "phone"),
-    },
-    {
-      label: "Occupation",
-      value: getSubmissionText(submission, "occupation"),
-    },
-    {
-      label: "Location",
-      value: [
-        getSubmissionText(submission, "town_city"),
-        getSubmissionText(submission, "state"),
-        getSubmissionText(submission, "country"),
-      ]
-        .filter(Boolean)
-        .join(", "),
-    },
-  ]);
-
-  return `
-    <p>${greeting}</p>
-    <p>Thank you for choosing to connect with Northern Women Initiative. We are delighted to confirm that your registration has been received successfully.</p>
-    <p>${escapeHtml(wasUpdate ? content.updatedText : content.submittedText)}</p>
-    <h3 style="margin-top:24px;">Next Steps</h3>
-    <ul style="padding-left:20px;">
-      <li>Our team will review your details and keep them on record for future engagement and follow-up.</li>
-      <li>You may receive updates about programs, mentorship opportunities, community outreach, and partnership initiatives led by the initiative.</li>
-      <li>If we need any clarification, we will contact you using the email address or phone number you provided.</li>
-    </ul>
-    ${summary}
-    ${buildSupportBlock()}
-    <p style="margin-top:24px;">We appreciate your desire to be part of a growing network committed to empowering women, nurturing leadership, and strengthening community development across Northern Nigeria and beyond.</p>
-    <p>Together, we can continue building opportunities that uplift women, families, and communities.</p>
-    <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
-  `;
-};
-
 const buildVolunteerUserEmailHtml = ({
   greeting,
   content,
@@ -780,15 +714,6 @@ const buildUserEmailHtml = ({
       wasUpdate,
       calendarEvent,
       eventTicketAssets,
-    });
-  }
-
-  if (flow === "join_us") {
-    return buildJoinUsUserEmailHtml({
-      greeting,
-      content,
-      wasUpdate,
-      submission,
     });
   }
 
