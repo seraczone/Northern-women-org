@@ -73,6 +73,25 @@ export default function BecomeAMember() {
         description:error.code==="23505"?"An application for this email and membership year already exists. Please contact NWI for help with a renewal or correction.":error.message,variant:"destructive"});
       return;
     }
+    const {error: notificationError} = await supabase.functions.invoke("send-registration-email", {
+      body: {
+        flow: "membership",
+        wasUpdate: false,
+        submission: {
+          first_name: form.first_name,
+          last_name: form.last_name,
+          email: form.email,
+          phone: form.phone,
+          membership_type: form.membership_type,
+          membership_year: year,
+          fee,
+          expiry_date: `${year}-12-31`,
+        },
+      },
+    });
+    if (notificationError) {
+      toast({title:"Application saved; email notification failed",description:"Your application is safely recorded, but the confirmation email could not be sent. NWI can still review your application.",variant:"destructive"});
+    }
     setSubmitted(true);
   };
 
