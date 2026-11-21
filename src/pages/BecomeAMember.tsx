@@ -1,179 +1,120 @@
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, ArrowRight, CheckCircle2, GraduationCap, Handshake, Lightbulb, Network, Users } from "lucide-react";
 import Layout from "@/components/layout/Layout";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, BriefcaseBusiness, CalendarDays, Check, GraduationCap, HeartHandshake, Lightbulb, Network, Sparkles, Users } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 
 const benefits = [
-  { icon: Network, title: "Meaningful connections", description: "Meet women across professions, communities, and generations who share a commitment to growth and collective progress." },
-  { icon: GraduationCap, title: "Professional development", description: "Access learning opportunities, mentorship conversations, skills sessions, and practical insights for your next step." },
-  { icon: BriefcaseBusiness, title: "Entrepreneurship support", description: "Connect with peers, resources, and initiatives that can help Northern women-owned ideas and businesses grow." },
-  { icon: HeartHandshake, title: "Community impact", description: "Participate in purpose-led projects and collaborative programs that create measurable change in communities." },
-  { icon: Lightbulb, title: "Leadership opportunities", description: "Discover ways to contribute your voice, share your experience, and take on meaningful leadership roles." },
-  { icon: CalendarDays, title: "Events and activities", description: "Stay close to summits, workshops, community conversations, networking gatherings, and member-focused activities." },
+  { icon: GraduationCap, title: "Mentorship and coaching classes", description: "Learn through guided mentorship and coaching sessions." },
+  { icon: Lightbulb, title: "Workshops and capacity building", description: "Develop practical knowledge and skills through workshops." },
+  { icon: Network, title: "Members' interaction and networking", description: "Build relationships and exchange ideas with fellow members." },
+  { icon: Handshake, title: "Business problem-solving support", description: "Connect with peers to discuss challenges and explore practical solutions." },
+  { icon: Users, title: "Collaborative content creation", description: "Collaborate on content highlighting members, their work and shared learning." },
+  { icon: CheckCircle2, title: "Access to discounted opportunities", description: "Receive information about eligible discounted opportunities made available to members." },
+  { icon: Users, title: "Participation in NWI activities", description: "Take part in scheduled member activities in line with programme arrangements." },
 ];
-
 const activities = [
-  { label: "01", title: "Learn", description: "Build confidence and practical skills through workshops, talks, and conversations with accomplished leaders." },
-  { label: "02", title: "Connect", description: "Find collaborators, mentors, peers, and professionals who understand your ambitions and can strengthen your journey." },
-  { label: "03", title: "Lead", description: "Use your expertise in community initiatives, committees, advocacy, mentoring, and NWI programs." },
-  { label: "04", title: "Create impact", description: "Turn shared ideas into meaningful action for women, families, businesses, and communities across the North." },
+  ["Ramadan Feeding Programme", "An organisational community support activity. Members may have opportunities to participate when activities are scheduled."],
+  ["Community Outreach and Empowerment Programme", "NWI outreach and empowerment work that members may be invited to support."],
+  ["Organisational Content Creation", "Collaborative content work that supports NWI communication and visibility."],
 ];
-
-const faqs = [
-  { question: "Who can become a member?", answer: "Membership is open to women who support the mission and values of Northern Women Initiative, including professionals, entrepreneurs, students, community leaders, and advocates." },
-  { question: "Is membership the same as Join Us?", answer: "No. Join Us remains a separate general interest experience. Become a Member is a dedicated membership page with its own route and information." },
-  { question: "What happens after I apply?", answer: "The application process is being finalized. This foundation page provides membership information and an application placeholder only; no application is submitted yet." },
-  { question: "Are membership fees required?", answer: "Membership options and pricing will be confirmed before applications and payments are enabled. This page does not collect payment or financial information." },
-];
-
-const scrollToSection = (sectionId: string) => {
-  document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
+const policyVersion = "2026-11-21";
+const initial = {
+  first_name:"", last_name:"", date_of_birth:"", phone:"", email:"", occupation:"",
+  business_name:"", business_category:"", residential_address:"", local_government:"",
+  town_city:"", state:"", country:"Nigeria", membership_type:"new" as "new"|"renewal",
+  membership_year:String(new Date().getFullYear()), terms_accepted:false,
+  conduct_accepted:false, privacy_accepted:false,
 };
+const money = (amount:number) => new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:0}).format(amount);
 
 export default function BecomeAMember() {
-  return (
-    <Layout>
-      <section className="relative overflow-hidden bg-gradient-hero py-16 md:py-24">
-        <div className="absolute -right-24 top-10 h-72 w-72 rounded-full border border-secondary/20" aria-hidden="true" />
-        <div className="absolute -right-10 top-24 h-48 w-48 rounded-full border border-primary-foreground/10" aria-hidden="true" />
-        <div className="container-section relative">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-2 text-secondary font-medium text-sm uppercase tracking-wider"><Sparkles size={16} aria-hidden="true" /> Membership</span>
-            <h1 className="mt-4 mb-6 text-4xl font-serif font-bold text-primary-foreground md:text-6xl">Become a Member</h1>
-            <p className="text-lg leading-relaxed text-primary-foreground/90 md:text-xl">Belong to a purposeful network of women shaping leadership, enterprise, and lasting impact across Northern Nigeria and beyond.</p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Button type="button" variant="gold" size="xl" onClick={() => scrollToSection("membership-application")}>Apply for Membership <ArrowRight size={20} aria-hidden="true" /></Button>
-              <Button type="button" variant="heroOutline" size="xl" onClick={() => scrollToSection("membership-benefits")}>Explore Benefits</Button>
-            </div>
-          </div>
-        </div>
-      </section>
+  const { toast } = useToast();
+  const [step,setStep] = useState(1);
+  const [form,setForm] = useState(initial);
+  const [submitting,setSubmitting] = useState(false);
+  const [submitted,setSubmitted] = useState(false);
+  const fee = form.membership_type === "new" ? 40000 : 30000;
+  const year = Number(form.membership_year);
+  const expiry = useMemo(() => new Date(year,11,31).toLocaleDateString("en-NG",{day:"numeric",month:"long",year:"numeric"}),[year]);
+  const today = new Date().toISOString().slice(0,10);
+  const update = (event:React.ChangeEvent<HTMLInputElement|HTMLSelectElement>) => {
+    const target = event.target;
+    const value = target instanceof HTMLInputElement && target.type === "checkbox" ? target.checked : target.value;
+    setForm(current => ({...current,[target.name]:value}));
+  };
+  const next = () => {
+    const required:Record<number,(keyof typeof form)[]> = {
+      1:["first_name","last_name","date_of_birth","phone","email"],
+      2:["occupation","residential_address","local_government","town_city","state","country"],
+    };
+    if ((required[step] || []).some(key => !String(form[key]).trim())) {
+      toast({title:"Complete the required fields",description:"Please fill in all required information before continuing.",variant:"destructive"});
+      return;
+    }
+    setStep(current => Math.min(4,current+1));
+  };
+  const submit = async (event:React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!form.terms_accepted || !form.conduct_accepted || !form.privacy_accepted) {
+      toast({title:"Please accept all membership acknowledgements",variant:"destructive"}); return;
+    }
+    setSubmitting(true);
+    const {error} = await supabase.from("membership_applications").insert({
+      ...form,membership_year:year,fee,expiry_date:`${year}-12-31`,
+      accepted_at:new Date().toISOString(),policy_version:policyVersion,
+    });
+    setSubmitting(false);
+    if (error) {
+      toast({title:error.code==="23505"?"Application already exists":"Unable to submit application",
+        description:error.code==="23505"?"An application for this email and membership year already exists. Please contact NWI for help with a renewal or correction.":error.message,variant:"destructive"});
+      return;
+    }
+    setSubmitted(true);
+  };
 
-      <section className="section-padding bg-background">
-        <div className="container-section grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
-          <div className="relative">
-            <div className="absolute -bottom-5 -left-5 h-24 w-24 rounded-2xl bg-secondary/20" aria-hidden="true" />
-            <div className="relative overflow-hidden rounded-2xl border border-border bg-muted shadow-elevated">
-              <div className="flex aspect-[5/4] items-center justify-center bg-gradient-warm p-8 text-center">
-                <div>
-                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-card"><Users size={38} aria-hidden="true" /></div>
-                  <p className="mt-6 text-sm font-semibold uppercase tracking-[0.24em] text-secondary-foreground">A growing sisterhood</p>
-                  <p className="mt-3 max-w-sm font-serif text-2xl font-semibold text-foreground">Women learning, leading, and lifting together.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div>
-            <span className="text-sm font-semibold uppercase tracking-wider text-secondary-foreground">Membership at NWI</span>
-            <h2 className="mt-3 text-3xl font-serif font-bold text-foreground md:text-4xl">A community where your voice and vision matter</h2>
-            <p className="mt-5 text-lg leading-relaxed text-muted-foreground">Northern Women Initiative membership brings women together across careers, industries, cultures, and communities. It is a place to strengthen your skills, build trusted relationships, contribute expertise, and help create opportunities that endure.</p>
-            <p className="mt-4 leading-relaxed text-muted-foreground">Whether you are beginning a career, growing an enterprise, serving your community, or stepping into leadership, membership offers a space to connect purpose with progress.</p>
-            <div className="mt-7 grid gap-3 sm:grid-cols-2">
-              {["A strong and supportive network", "Learning with purpose", "Leadership and visibility", "Shared community impact"].map((item) => (
-                <div key={item} className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 text-sm font-medium"><Check size={18} className="shrink-0 text-primary" aria-hidden="true" /> {item}</div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="membership-benefits" className="scroll-mt-24 section-padding bg-muted">
-        <div className="container-section">
-          <div className="mx-auto max-w-3xl text-center">
-            <span className="text-sm font-semibold uppercase tracking-wider text-secondary-foreground">Why join</span>
-            <h2 className="mt-3 text-3xl font-serif font-bold md:text-4xl">Membership that moves you forward</h2>
-            <p className="mt-4 text-lg leading-relaxed text-muted-foreground">Build relationships, develop professionally, contribute to community work, and be part of a network committed to women&apos;s advancement.</p>
-          </div>
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {benefits.map((benefit) => (
-              <article key={benefit.title} className="card-hover rounded-2xl border border-border bg-card p-7 shadow-card">
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary"><benefit.icon size={24} aria-hidden="true" /></div>
-                <h3 className="text-xl font-serif font-semibold">{benefit.title}</h3>
-                <p className="mt-3 leading-relaxed text-muted-foreground">{benefit.description}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="section-padding bg-background">
-        <div className="container-section">
-          <div className="grid items-stretch gap-8 lg:grid-cols-[0.8fr_1.2fr]">
-            <div className="flex flex-col justify-between rounded-3xl bg-gradient-hero p-8 text-primary-foreground shadow-elevated md:p-10">
-              <div>
-                <span className="text-sm font-semibold uppercase tracking-wider text-secondary">Membership plan</span>
-                <h2 className="mt-3 text-3xl font-serif font-bold md:text-4xl">NWI Membership</h2>
-                <p className="mt-5 leading-relaxed text-primary-foreground/80">Membership information and the final fee structure are being reviewed. The completed membership offer will provide clear pricing, benefits, and renewal details before applications open.</p>
-              </div>
-              <div className="mt-10 border-t border-primary-foreground/20 pt-7"><p className="text-sm text-primary-foreground/70">Pricing status</p><p className="mt-1 text-2xl font-serif font-semibold">To be confirmed</p></div>
-            </div>
-            <div className="rounded-3xl border border-border bg-card p-7 shadow-card md:p-10">
-              <h3 className="text-2xl font-serif font-bold">Membership may include</h3>
-              <div className="mt-7 grid gap-4 sm:grid-cols-2">
-                {["Member networking access", "Mentorship opportunities", "Learning and skills sessions", "Community project participation", "Entrepreneurship support", "NWI events and updates", "Leadership opportunities", "Collaborative partnerships"].map((item) => (
-                  <div key={item} className="flex items-start gap-3 text-sm leading-relaxed"><Check size={18} className="mt-0.5 shrink-0 text-secondary-foreground" aria-hidden="true" /><span>{item}</span></div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="section-padding bg-muted">
-        <div className="container-section grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-16">
-          <div><span className="text-sm font-semibold uppercase tracking-wider text-secondary-foreground">What you can do</span><h2 className="mt-3 text-3xl font-serif font-bold md:text-4xl">Turn membership into meaningful action</h2><p className="mt-5 leading-relaxed text-muted-foreground">NWI membership is designed around active participation, shared learning, and impact—not simply belonging.</p></div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {activities.map((activity) => (
-              <article key={activity.title} className="relative overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-card"><span className="absolute right-5 top-3 font-serif text-5xl font-bold text-primary/10">{activity.label}</span><h3 className="relative text-xl font-serif font-semibold">{activity.title}</h3><p className="relative mt-3 text-sm leading-relaxed text-muted-foreground">{activity.description}</p></article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="membership-application" className="scroll-mt-24 section-padding bg-background">
-        <div className="container-section">
-          <div className="grid overflow-hidden rounded-3xl border border-border bg-card shadow-elevated lg:grid-cols-[0.9fr_1.1fr]">
-            <div className="bg-primary p-8 text-primary-foreground md:p-12">
-              <span className="text-sm font-semibold uppercase tracking-wider text-secondary">Membership application</span>
-              <h2 className="mt-3 text-3xl font-serif font-bold">Ready to take the next step?</h2>
-              <p className="mt-5 leading-relaxed text-primary-foreground/80">The membership application experience is being prepared. It will collect the information needed for membership review and follow-up while keeping your details secure.</p>
-              <div className="mt-8 space-y-4">{["Review membership information", "Complete the application", "Receive confirmation and next steps"].map((item, index) => (<div key={item} className="flex items-center gap-4"><span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-foreground/10 text-sm font-semibold">{index + 1}</span><span className="text-sm font-medium">{item}</span></div>))}</div>
-            </div>
-            <div className="flex min-h-[420px] items-center justify-center p-8 md:p-12">
-              <div className="max-w-md text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-secondary/20 text-secondary-foreground"><Sparkles size={28} aria-hidden="true" /></div>
-                <h3 className="mt-6 text-2xl font-serif font-bold">Application opening soon</h3>
-                <p className="mt-3 leading-relaxed text-muted-foreground">No application details or payments are collected on this page yet. For immediate engagement opportunities, visit our existing Join Us registration.</p>
-                <Button variant="burgundy" size="lg" className="mt-7" asChild><a href="/join-us">Visit Join Us <ArrowRight size={18} aria-hidden="true" /></a></Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="section-padding bg-muted">
-        <div className="container-section grid gap-10 lg:grid-cols-[0.7fr_1.3fr]">
-          <div><span className="text-sm font-semibold uppercase tracking-wider text-secondary-foreground">Terms and conditions</span><h2 className="mt-3 text-3xl font-serif font-bold">Membership guidelines</h2></div>
-          <div className="rounded-2xl border border-border bg-card p-7 shadow-card md:p-9"><p className="leading-relaxed text-muted-foreground">Membership terms, eligibility, code of conduct, fees, renewal, privacy, and cancellation guidelines will be presented clearly before applications are accepted. Until that process is published, membership registration and payment are not active on this page.</p><p className="mt-4 text-sm text-muted-foreground">NWI values respectful participation, transparency, inclusion, data protection, and conduct that supports the dignity and wellbeing of our community.</p></div>
-        </div>
-      </section>
-
-      <section className="section-padding bg-background">
-        <div className="container-section grid gap-10 lg:grid-cols-[0.7fr_1.3fr]">
-          <div><span className="text-sm font-semibold uppercase tracking-wider text-secondary-foreground">Frequently asked questions</span><h2 className="mt-3 text-3xl font-serif font-bold">Questions about membership</h2><p className="mt-4 leading-relaxed text-muted-foreground">Find quick answers to the most important questions about the dedicated membership experience.</p></div>
-          <Accordion type="single" collapsible className="rounded-2xl border border-border bg-card px-6 shadow-card md:px-8">
-            {faqs.map((faq, index) => (<AccordionItem key={faq.question} value={`item-${index}`}><AccordionTrigger className="text-left text-base font-semibold">{faq.question}</AccordionTrigger><AccordionContent className="pr-6 text-base leading-relaxed text-muted-foreground">{faq.answer}</AccordionContent></AccordionItem>))}
-          </Accordion>
-        </div>
-      </section>
-
-      <section className="bg-primary py-16 md:py-20">
-        <div className="container-section text-center">
-          <h2 className="text-3xl font-serif font-bold text-primary-foreground md:text-4xl">Join a network built for lasting impact</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-lg text-primary-foreground/80">Stay connected with Northern Women Initiative and continue your journey through our community.</p>
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row"><Button variant="gold" size="xl" asChild><a href="/join-us">Join Us <ArrowRight size={20} aria-hidden="true" /></a></Button><Button variant="heroOutline" size="xl" onClick={() => scrollToSection("membership-benefits")}>Review Benefits</Button></div>
-        </div>
-      </section>
-    </Layout>
-  );
+  return <Layout>
+    <section className="bg-gradient-hero py-16 md:py-20"><div className="container-section max-w-5xl">
+      <p className="text-sm font-semibold uppercase tracking-wider text-secondary">NWI annual membership</p>
+      <h1 className="mt-3 text-4xl font-serif font-bold text-primary-foreground md:text-5xl">Grow, Connect, Learn and Build Together</h1>
+      <p className="mt-5 max-w-3xl text-lg leading-relaxed text-primary-foreground/90">Join the Northern Women Initiative membership community and access mentorship, business development, networking, collaboration and opportunities for growth.</p>
+      <div className="mt-8 flex flex-wrap gap-3"><Button variant="gold" size="lg" asChild><a href="#membership-benefits">Explore Membership</a></Button><Button variant="heroOutline" size="lg" asChild><a href="#membership-application">Register as a Member</a></Button></div>
+    </div></section>
+    <section id="membership-benefits" className="section-padding bg-background"><div className="container-section">
+      <div className="mx-auto max-w-3xl text-center"><h2 className="text-3xl font-serif font-bold md:text-4xl">What membership includes</h2><p className="mt-4 text-muted-foreground">The membership package includes the following programme benefits.</p></div>
+      <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{benefits.map(({icon:Icon,title,description})=><article key={title} className="rounded-2xl border border-border bg-card p-6 shadow-card"><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Icon size={22}/></div><h3 className="font-serif text-lg font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p></article>)}</div>
+    </div></section>
+    <section className="section-padding bg-muted"><div className="container-section"><h2 className="text-center text-3xl font-serif font-bold">Annual membership fees</h2><div className="mx-auto mt-8 grid max-w-3xl gap-5 sm:grid-cols-2">
+      <div className="rounded-2xl border border-border bg-card p-7 text-center"><p className="text-sm font-semibold uppercase text-muted-foreground">New member</p><p className="mt-3 text-4xl font-bold text-primary">{money(40000)}</p><p className="mt-2 text-sm text-muted-foreground">One-year membership</p></div>
+      <div className="rounded-2xl border border-border bg-card p-7 text-center"><p className="text-sm font-semibold uppercase text-muted-foreground">Existing member renewal</p><p className="mt-3 text-4xl font-bold text-primary">{money(30000)}</p><p className="mt-2 text-sm text-muted-foreground">Renewal for a membership year</p></div>
+    </div><p className="mx-auto mt-6 max-w-3xl text-center text-sm text-muted-foreground">Membership operates from January to December and expires on 31 December of the selected year, even where registration occurs later.</p></div></section>
+    <section className="section-padding bg-background"><div className="container-section"><h2 className="text-center text-3xl font-serif font-bold">NWI organisational activities</h2><p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">These are organisational activities and possible participation opportunities, not guaranteed membership entitlements.</p><div className="mt-8 grid gap-5 md:grid-cols-3">{activities.map(([title,description])=><article key={title} className="rounded-2xl border border-border bg-card p-6"><h3 className="font-serif text-xl font-semibold">{title}</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p></article>)}</div></div></section>
+    <section id="membership-application" className="section-padding scroll-mt-24 bg-muted"><div className="container-section max-w-4xl">
+      <div className="mb-8 text-center"><h2 className="text-3xl font-serif font-bold">Membership application</h2><p className="mt-3 text-muted-foreground">Complete the four steps below. Your progress is kept while navigating between steps.</p></div>
+      {submitted ? <div className="rounded-2xl border border-border bg-card p-8 text-center shadow-card"><CheckCircle2 className="mx-auto h-14 w-14 text-primary"/><h3 className="mt-4 text-2xl font-serif font-bold">Application received</h3><p className="mx-auto mt-3 max-w-xl text-muted-foreground">Your application has been saved. Your selected category is {form.membership_type==="new"?"New Member":"Existing Member Renewal"} and the fee is {money(fee)}. Payment has not been processed or verified. Please wait for official payment instructions and confirmation from NWI.</p><p className="mt-3 text-sm text-muted-foreground">Membership year: {year}. Expiry: {expiry}.</p><Button className="mt-6" asChild><Link to="/join-us">Explore other ways to get involved</Link></Button></div> :
+      <form onSubmit={submit} className="rounded-2xl border border-border bg-card p-6 shadow-card sm:p-8">
+        <div className="mb-8 grid grid-cols-4 gap-2">{["Personal","Profile","Membership","Agreement"].map((label,index)=><div key={label}><div className={`h-2 rounded-full ${step>=index+1?"bg-primary":"bg-muted"}`}/><p className={`mt-2 text-center text-xs ${step===index+1?"font-bold text-foreground":"text-muted-foreground"}`}>{label}</p></div>)}</div>
+        {step===1 && <div className="space-y-4"><h3 className="text-xl font-semibold">Step 1 — Personal information</h3><div className="grid gap-4 sm:grid-cols-2">{([["first_name","First name","text"],["last_name","Last name","text"],["date_of_birth","Date of birth","date"],["phone","Phone","tel"],["email","Email","email"]] as const).map(([name,label,type])=><div key={name} className="space-y-2"><label htmlFor={name} className="text-sm font-medium">{label} *</label><Input id={name} name={name} type={type} max={name==="date_of_birth"?today:undefined} required value={form[name]} onChange={update}/></div>)}</div></div>}
+        {step===2 && <div className="space-y-4"><h3 className="text-xl font-semibold">Step 2 — Profile</h3><div className="grid gap-4 sm:grid-cols-2">{([["occupation","Occupation",true],["business_name","Business name",false],["business_category","Business category",false],["residential_address","Residential address",true],["local_government","Local Government",true],["town_city","Town/City",true],["state","State",true],["country","Country",true]] as const).map(([name,label,required])=><div key={name} className="space-y-2"><label htmlFor={name} className="text-sm font-medium">{label}{required?" *":" (optional)"}</label><Input id={name} name={name} required={required} value={form[name]} onChange={update}/></div>)}</div></div>}
+        {step===3 && <div className="space-y-5"><h3 className="text-xl font-semibold">Step 3 — Membership selection</h3><div className="space-y-2"><label htmlFor="membership_type" className="text-sm font-medium">Membership category</label><select id="membership_type" name="membership_type" value={form.membership_type} onChange={update} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"><option value="new">New Member — {money(40000)}</option><option value="renewal">Existing Member Renewal — {money(30000)}</option></select></div><div className="space-y-2"><label htmlFor="membership_year" className="text-sm font-medium">Membership year</label><select id="membership_year" name="membership_year" value={form.membership_year} onChange={update} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm">{[new Date().getFullYear(),new Date().getFullYear()+1].map(item=><option key={item} value={item}>{item}</option>)}</select></div><div className="rounded-xl bg-muted p-5"><p className="text-sm text-muted-foreground">Application fee</p><p className="mt-1 text-3xl font-bold text-primary">{money(fee)}</p><p className="mt-2 text-sm text-muted-foreground">Membership year: {year} · Expiry: {expiry}</p></div></div>}
+        {step===4 && <div className="space-y-5"><h3 className="text-xl font-semibold">Step 4 — Review and agreement</h3><div className="rounded-xl bg-muted p-5 text-sm"><p><strong>Name:</strong> {form.first_name} {form.last_name}</p><p className="mt-1"><strong>Email:</strong> {form.email}</p><p className="mt-1"><strong>Category:</strong> {form.membership_type==="new"?"New Member":"Existing Member Renewal"}</p><p className="mt-1"><strong>Fee:</strong> {money(fee)}</p><p className="mt-1"><strong>Membership year:</strong> {year}</p><p className="mt-1"><strong>Expiry:</strong> {expiry}</p></div>
+          <div className="rounded-xl border border-border p-4 text-sm leading-relaxed"><p className="font-semibold">Membership terms and policies</p><ul className="mt-2 list-disc space-y-2 pl-5"><li>Membership operates January–December and expires 31 December.</li><li>Late registration does not extend membership into an additional twelve-month period.</li><li>Payments are strictly non-refundable. Failure to attend does not qualify for refunds or extensions.</li><li>Members are expected to participate in scheduled activities, provide accurate information and requested materials, and monitor official communication channels.</li><li>Respect and professionalism are required. Bullying, harassment, intimidation, insults and discrimination are prohibited.</li><li>Confidentiality and privacy must be respected. Obtain consent before sharing another member's personal information, images or private business details.</li><li>Fraud, dishonest solicitation, spam and unrelated promotional activities are prohibited. Members must follow organisational guidelines.</li><li>Misconduct may result in suspension or termination. Listed benefits define the membership package; additional opportunities, sponsorships, privileges and partnerships are supplementary and not guaranteed.</li><li>Membership requires renewal for the following year.</li></ul></div>
+          {([["terms_accepted","I accept the membership fees, duration, expiry and non-refundable payment terms."],["conduct_accepted","I agree to follow the NWI code of conduct and organisational guidelines."],["privacy_accepted","I acknowledge the privacy and confidentiality expectations above."]] as const).map(([name,label])=><label key={name} className="flex items-start gap-3 text-sm"><input type="checkbox" name={name} checked={form[name]} onChange={update} className="mt-1"/><span>{label} *</span></label>)}
+        </div>}
+        <div className="mt-8 flex flex-wrap justify-between gap-3 border-t border-border pt-6">{step>1?<Button type="button" variant="outline" onClick={()=>setStep(current=>current-1)}><ArrowLeft size={16}/> Back</Button>:<span/>}{step<4?<Button type="button" onClick={next}>Continue <ArrowRight size={16}/></Button>:<Button type="submit" disabled={submitting||!form.terms_accepted||!form.conduct_accepted||!form.privacy_accepted}>{submitting?"Submitting...":"Submit membership application"} <ArrowRight size={16}/></Button>}</div>
+      </form>}
+    </div></section>
+    <section className="section-padding bg-background"><div className="container-section max-w-4xl"><h2 className="text-2xl font-serif font-bold">Membership FAQs</h2><div className="mt-5 divide-y divide-border rounded-2xl border border-border px-6">{[
+      ["Who can join?","Women who support the mission and values of Northern Women Initiative may apply."],
+      ["What are the fees?","New membership is ₦40,000 and existing member renewal is ₦30,000."],
+      ["How long does membership last?","Membership operates January through December and expires on 31 December of the selected year."],
+      ["Does late registration extend membership?","No. Late registration does not add another twelve months."],
+      ["Are payments refundable?","No. Membership payments are strictly non-refundable, including where a member does not attend."],
+      ["Are additional opportunities guaranteed?","No. The listed membership package defines the benefits. Additional sponsorships, privileges and partnerships are not guaranteed."],
+      ["How do I renew?","Select Existing Member Renewal in the application and complete the renewal for the relevant membership year."],
+    ].map(([question,answer])=><details key={question} className="py-4"><summary className="cursor-pointer font-semibold">{question}</summary><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{answer}</p></details>)}</div><p className="mt-6 text-sm text-muted-foreground">Not ready for membership? <Link className="font-semibold text-primary underline" to="/join-us">Explore other ways to get involved.</Link></p></div></section>
+  </Layout>;
 }
