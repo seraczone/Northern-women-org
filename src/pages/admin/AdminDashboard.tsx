@@ -56,6 +56,7 @@ export default function AdminDashboard() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [registrationCount, setRegistrationCount] = useState(0);
   const [summitRegistrationCount, setSummitRegistrationCount] = useState(0);
+  const [membershipCount, setMembershipCount] = useState(0);
   const [volunteerCount, setVolunteerCount] = useState(0);
   const [newsletterCount, setNewsletterCount] = useState(0);
   const [quoteCount, setQuoteCount] = useState(0);
@@ -76,6 +77,7 @@ export default function AdminDashboard() {
       recentQuotesResponse,
       registrationCountResponse,
       summitRegistrationCountResponse,
+      membershipCountResponse,
       volunteerCountResponse,
       newsletterCountResponse,
       quoteCountResponse,
@@ -114,6 +116,9 @@ export default function AdminDashboard() {
           .from("summit_2026_registrations")
           .select("*", { count: "exact", head: true }),
         supabase
+          .from("membership_applications")
+          .select("*", { count: "exact", head: true }),
+        supabase
           .from("volunteer_applications")
           .select("*", { count: "exact", head: true }),
         supabase
@@ -131,6 +136,7 @@ export default function AdminDashboard() {
     setQuotes(recentQuotesResponse.data || []);
     setRegistrationCount(registrationCountResponse.count || 0);
     setSummitRegistrationCount(summitRegistrationCountResponse.count || 0);
+    setMembershipCount(membershipCountResponse.count || 0);
     setVolunteerCount(volunteerCountResponse.count || 0);
     setNewsletterCount(newsletterCountResponse.count || 0);
     setQuoteCount(quoteCountResponse.count || 0);
@@ -180,7 +186,7 @@ export default function AdminDashboard() {
       <div className="space-y-10 p-10">
         <h1 className="mb-6 text-3xl font-bold">Admin Dashboard</h1>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-6">
           <div className="rounded-xl bg-muted p-6 text-center shadow">
             <p>Total Event Registrations</p>
             <p className="text-3xl font-bold">{registrationCount}</p>
@@ -188,6 +194,10 @@ export default function AdminDashboard() {
           <div className="rounded-xl bg-muted p-6 text-center shadow">
             <p>Total Summit 2026 Registrations</p>
             <p className="text-3xl font-bold">{summitRegistrationCount}</p>
+          </div>
+          <div className="rounded-xl bg-muted p-6 text-center shadow">
+            <p>Total Membership Applications</p>
+            <p className="text-3xl font-bold">{membershipCount}</p>
           </div>
           <div className="rounded-xl bg-muted p-6 text-center shadow">
             <p>Total Get Involved Applications</p>
