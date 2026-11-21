@@ -2,7 +2,6 @@ import { supabase } from "@/lib/supabase";
 
 type RegistrationPayload = Record<string, string | null>;
 type RegistrationTable =
-  | "join_us_registrations"
   | "summit_2026_registrations"
   | "volunteer_applications";
 
@@ -23,7 +22,6 @@ type SaveRegistrationResult = {
 };
 
 const registrationFlowByTable: Record<RegistrationTable, string> = {
-  join_us_registrations: "join_us",
   summit_2026_registrations: "summit_2026",
   volunteer_applications: "volunteer",
 };
