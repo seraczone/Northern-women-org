@@ -151,7 +151,7 @@ export default function AdminGetInvolved() {
           <div>
             <h1 className="text-3xl font-bold">Get Involved Applications</h1>
             <p className="text-muted-foreground">
-              Review volunteer applications separately from Join Us and event registrations.
+              Review volunteer applications separately from event registrations and annual memberships.
             </p>
           </div>
 
