@@ -11,6 +11,7 @@ const navLinks = [
   { name: "Programs", path: "/programs" },
   { name: "Events", path: "/events" },
   { name: "Get Involved", path: "/get-involved" },
+  { name: "Become a Member", path: "/become-a-member" },
   { name: "Contact", path: "/contact" },
 ];
 
