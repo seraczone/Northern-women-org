@@ -13,7 +13,6 @@ declare
   table_name text;
 begin
   foreach table_name in array array[
-    'join_us_registrations',
     'summit_2026_registrations',
     'volunteer_applications'
   ]
