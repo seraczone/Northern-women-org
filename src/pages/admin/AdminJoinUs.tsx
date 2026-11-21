@@ -22,6 +22,7 @@ interface JoinUsSubmission {
   state: string;
   country: string;
   message: string | null;
+  interest_area: string | null;
   created_at: string;
 }
 
@@ -32,6 +33,7 @@ export default function AdminJoinUs() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [interestFilter, setInterestFilter] = useState("all");
 
   useEffect(() => {
     void fetchSubmissions();
@@ -90,12 +92,10 @@ export default function AdminJoinUs() {
   const filteredSubmissions = useMemo(() => {
     const normalizedTerm = searchTerm.trim().toLowerCase();
 
-    if (!normalizedTerm) {
-      return submissions;
-    }
-
-    return submissions.filter((submission) =>
-      [
+    return submissions.filter((submission) => {
+      const matchesInterest = interestFilter === "all" || submission.interest_area === interestFilter;
+      if (!normalizedTerm) return matchesInterest;
+      return matchesInterest && [
         submission.first_name,
         submission.last_name,
         submission.email,
@@ -104,12 +104,10 @@ export default function AdminJoinUs() {
         submission.occupation,
         submission.state,
         submission.country,
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(normalizedTerm),
-    );
-  }, [submissions, searchTerm]);
+        submission.interest_area || "",
+      ].join(" ").toLowerCase().includes(normalizedTerm);
+    });
+  }, [submissions, searchTerm, interestFilter]);
 
   const exportToCsv = () => {
     const headers = [
@@ -127,6 +125,7 @@ export default function AdminJoinUs() {
       "State",
       "Country",
       "Message",
+      "Interest Area",
       "Date",
     ];
 
@@ -145,6 +144,7 @@ export default function AdminJoinUs() {
       submission.state,
       submission.country,
       submission.message || "",
+      submission.interest_area || "",
       new Date(submission.created_at).toLocaleDateString(),
     ]);
 
@@ -205,6 +205,15 @@ export default function AdminJoinUs() {
 
             <select
               className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+              value={interestFilter}
+              onChange={(event) => setInterestFilter(event.target.value)}
+            >
+              <option value="all">All interests</option>
+              {["Volunteer","Community outreach","Programmes and activities","Partnership/collaboration","Support NWI initiatives","General interest","Membership information","Other"].map((interest) => <option key={interest} value={interest}>{interest}</option>)}
+            </select>
+
+            <select
+              className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
               value={sortOrder}
               onChange={(event) => setSortOrder(event.target.value as "asc" | "desc")}
             >
@@ -239,6 +248,7 @@ export default function AdminJoinUs() {
                       <th className="border p-3">Address</th>
                       <th className="border p-3">Date of Birth</th>
                       <th className="border p-3">Location</th>
+                      <th className="border p-3">Interest</th>
                       <th className="border p-3">Message</th>
                       <th className="border p-3">Date</th>
                       <th className="border p-3">Action</th>
@@ -263,6 +273,7 @@ export default function AdminJoinUs() {
                         <td className="border p-3">
                           {submission.town_city}, {submission.state}, {submission.country}
                         </td>
+                        <td className="border p-3">{submission.interest_area || "-"}</td>
                         <td className="border p-3">{submission.message || "-"}</td>
                         <td className="border p-3">
                           {new Date(submission.created_at).toLocaleDateString()}
