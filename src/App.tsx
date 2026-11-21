@@ -12,7 +12,6 @@ import About from "./pages/About";
 import Programs from "./pages/Programs";
 import Events from "./pages/Events";
 import GetInvolved from "./pages/GetInvolved";
-import JoinUs from "./pages/JoinUs";
 import BecomeAMember from "./pages/BecomeAMember";
 import Contact from "./pages/Contact";
 import Donate from "./pages/Donate";
@@ -28,7 +27,6 @@ import NotFound from "./pages/NotFound";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminGetInvolved from "./pages/admin/AdminGetInvolved";
-import AdminJoinUs from "./pages/admin/AdminJoinUs";
 import AdminMemberships from "./pages/admin/AdminMemberships";
 import AdminRegistrations from "./pages/admin/AdminRegistrations";
 import AdminSummitRegistrations from "./pages/admin/AdminSummitRegistrations";
@@ -63,7 +61,6 @@ const App = () => (
           <Route path="/summit-2026/register" element={<RegisterSummit2026 />} />
           <Route path="/verify-summit-registration" element={<VerifySummitRegistration />} />
           <Route path="/get-involved" element={<GetInvolved />} />
-          <Route path="/join-us" element={<JoinUs />} />
           <Route path="/become-a-member" element={<BecomeAMember />} />
           <Route path="/our-team" element={<OurTeam />} />
           <Route path="/contact" element={<Contact />} />
@@ -76,7 +73,6 @@ const App = () => (
           <Route path="/admin/get-involved" element={<AdminGetInvolved />} />
           <Route path="/admin/summit-registrations" element={<AdminSummitRegistrations />} />
           <Route path="/admin/event-feedback" element={<AdminEventFeedback />} />
-          <Route path="/admin/join-us" element={<AdminJoinUs />} />
           <Route path="/admin/memberships" element={<AdminMemberships />} />
           <Route path="/admin/quotes" element={<AdminQuotes />} />
           <Route path="/admin/programs" element={<AdminPrograms />} />
