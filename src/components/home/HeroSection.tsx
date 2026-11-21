@@ -138,8 +138,8 @@ const HeroSection = () => {
             transition={{ duration: 1, delay: 1 }}
           >
             <Button variant="hero" size="xl" asChild>
-              <Link to="/join-us">
-                Join the Initiative
+              <Link to="/become-a-member">
+                Become a Member
                 <ArrowRight size={20} />
               </Link>
             </Button>
