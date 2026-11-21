@@ -29,6 +29,7 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminGetInvolved from "./pages/admin/AdminGetInvolved";
 import AdminJoinUs from "./pages/admin/AdminJoinUs";
+import AdminMemberships from "./pages/admin/AdminMemberships";
 import AdminRegistrations from "./pages/admin/AdminRegistrations";
 import AdminSummitRegistrations from "./pages/admin/AdminSummitRegistrations";
 import AdminEventFeedback from "./pages/admin/AdminEventFeedback";
@@ -76,6 +77,7 @@ const App = () => (
           <Route path="/admin/summit-registrations" element={<AdminSummitRegistrations />} />
           <Route path="/admin/event-feedback" element={<AdminEventFeedback />} />
           <Route path="/admin/join-us" element={<AdminJoinUs />} />
+          <Route path="/admin/memberships" element={<AdminMemberships />} />
           <Route path="/admin/quotes" element={<AdminQuotes />} />
           <Route path="/admin/programs" element={<AdminPrograms />} />
           <Route path="/admin/events" element={<AdminEvents />} />
