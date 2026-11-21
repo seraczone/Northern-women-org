@@ -13,6 +13,7 @@ import Programs from "./pages/Programs";
 import Events from "./pages/Events";
 import GetInvolved from "./pages/GetInvolved";
 import JoinUs from "./pages/JoinUs";
+import BecomeAMember from "./pages/BecomeAMember";
 import Contact from "./pages/Contact";
 import Donate from "./pages/Donate";
 import OurTeam from "./pages/OurTeam";
@@ -62,6 +63,7 @@ const App = () => (
           <Route path="/verify-summit-registration" element={<VerifySummitRegistration />} />
           <Route path="/get-involved" element={<GetInvolved />} />
           <Route path="/join-us" element={<JoinUs />} />
+          <Route path="/become-a-member" element={<BecomeAMember />} />
           <Route path="/our-team" element={<OurTeam />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/donate" element={<Donate />} />
