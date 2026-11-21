@@ -82,7 +82,7 @@ const Navbar = () => {
               ))}
               <div className="px-4 pt-4 border-t border-border">
                 <Button variant="gold" className="w-full" asChild>
-                  <Link to="/join-us">Join Us</Link>
+                  <Link to="/become-a-member">Become a Member</Link>
                 </Button>
               </div>
             </div>
