@@ -322,8 +322,8 @@ const About = () => {
             starts here.
           </p>
           <Button variant="hero" size="xl" asChild>
-            <Link to="/join-us">
-              Get Involved Today
+            <Link to="/become-a-member">
+              Become a Member
               <ArrowRight size={20} />
             </Link>
           </Button>
