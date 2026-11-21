@@ -23,7 +23,7 @@ const PUBLIC_SITE_URL = (
   Deno.env.get("PUBLIC_SITE_URL") ?? "https://northernwomeninitiative.org"
 ).replace(/\/+$/, "");
 
-type Flow = "event" | "join_us" | "summit_2026" | "volunteer";
+type Flow = "event" | "join_us" | "summit_2026" | "volunteer" | "membership";
 
 type FlowContent = {
   adminLabel: string;
@@ -76,6 +76,12 @@ const flowContent: Record<Exclude<Flow, "event">, FlowContent> = {
       "We have received your summit registration and payment details. Your attendance will be confirmed after payment verification is completed.",
     updatedText:
       "Your summit registration has been updated successfully. Any ongoing payment verification will continue using your latest details.",
+  },
+  membership: {
+    adminLabel: "Annual Membership Application",
+    confirmationTitle: "NWI Membership Application",
+    submittedText: "Your membership application has been received. Your application is not an approval or payment confirmation. Please follow the official payment instructions and wait for verification by Northern Women Initiative.",
+    updatedText: "Your membership application details have been updated. Your payment and membership status remain subject to verification by Northern Women Initiative.",
   },
   volunteer: {
     adminLabel: "Volunteer Application",
