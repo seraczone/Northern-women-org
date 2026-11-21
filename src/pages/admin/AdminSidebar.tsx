@@ -70,6 +70,13 @@ export default function AdminSidebar() {
         </NavLink>
 
         <NavLink
+          to="/admin/memberships"
+          className={({ isActive }) => `${linkClass} ${isActive ? activeClass : ""}`}
+        >
+          <Users size={18} /> Memberships
+        </NavLink>
+
+        <NavLink
           to="/admin/get-involved"
           className={({ isActive }) => `${linkClass} ${isActive ? activeClass : ""}`}
         >
