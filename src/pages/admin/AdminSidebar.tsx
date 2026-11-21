@@ -10,7 +10,6 @@ import {
   Quote,
   Shield,
   Ticket,
-  UserPlus,
   Users,
 } from "lucide-react";
 
@@ -60,13 +59,6 @@ export default function AdminSidebar() {
           className={({ isActive }) => `${linkClass} ${isActive ? activeClass : ""}`}
         >
           <MessageSquare size={18} /> Event Feedback
-        </NavLink>
-
-        <NavLink
-          to="/admin/join-us"
-          className={({ isActive }) => `${linkClass} ${isActive ? activeClass : ""}`}
-        >
-          <UserPlus size={18} /> Join Us
         </NavLink>
 
         <NavLink
