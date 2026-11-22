@@ -80,7 +80,7 @@ export default function BecomeAMember() {
     if (!form.terms_accepted || !form.conduct_accepted || !form.privacy_accepted) {
       toast({title:"Please accept all membership acknowledgements",variant:"destructive"}); return;
     }
-    if (!paymentSettings.bank_name.trim() || !paymentSettings.account_name.trim() || !/^\\d{10}$/.test(paymentSettings.account_number.trim())) {
+    if (!paymentSettings.bank_name.trim() || !paymentSettings.account_name.trim() || !/^[0-9]{10}$/.test(paymentSettings.account_number.trim())) {
       toast({title:"Membership payment details are not ready",description:"Please try again later or contact Northern Women Initiative for assistance.",variant:"destructive"}); return;
     }
     setSubmitting(true);
