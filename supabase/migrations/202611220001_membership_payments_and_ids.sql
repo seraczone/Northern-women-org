@@ -97,6 +97,9 @@ begin
       new.member_id := old.member_id;
       new.membership_id := old.membership_id;
     else
+      -- Serialize approvals for the same email so concurrent requests cannot create duplicate member records.
+      perform pg_advisory_xact_lock(hashtextextended(lower(btrim(new.email)), 0));
+
       -- A renewal with the same normalized email reuses the person's permanent ID.
       select id, membership_id
         into resolved_member_id, resolved_membership_id
