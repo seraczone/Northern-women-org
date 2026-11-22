@@ -81,48 +81,30 @@ export default function BecomeAMember() {
       toast({title:"Please accept all membership acknowledgements",variant:"destructive"}); return;
     }
     if (!paymentSettings.bank_name.trim() || !paymentSettings.account_name.trim() || !/^[0-9]{10}$/.test(paymentSettings.account_number.trim())) {
-      toast({title:"Membership payment details are not ready",description:"Please try again later or contact Northern Women Initiative for assistance.",variant:"destructive"}); return;
+      toast({title:"Membership payment details are not ready",description:"Please contact Northern Women Initiative for assistance.",variant:"destructive"}); return;
+    }
+    if (!receiptFile) { toast({title:"Payment receipt required",description:"Complete your bank transfer and attach the receipt before submitting.",variant:"destructive"}); return; }
+    if (!["image/jpeg","image/png","application/pdf"].includes(receiptFile.type) || receiptFile.size > 5*1024*1024) {
+      toast({title:"Invalid receipt file",description:"Upload a JPG, PNG or PDF file no larger than 5MB.",variant:"destructive"}); return;
     }
     setSubmitting(true);
-    const newApplicationId = crypto.randomUUID();
-    const newUploadToken = crypto.randomUUID();
-    const {error} = await supabase.from("membership_applications").insert({
-      ...form,id:newApplicationId,receipt_upload_token:newUploadToken,
-      membership_year:year,fee,expiry_date:`${year}-12-31`,
-      accepted_at:new Date().toISOString(),policy_version:policyVersion,
-    });
-    setSubmitting(false);
-    if (error) {
-      toast({title:error.code==="23505"?"Application already exists":"Unable to submit application",
-        description:error.code==="23505"?"An application for this email and membership year already exists. Please contact NWI for help with a renewal or correction.":error.message,variant:"destructive"});
-      return;
-    }
-    setApplicationId(newApplicationId);
-    setUploadToken(newUploadToken);
-    const {error: notificationError} = await supabase.functions.invoke("send-registration-email", {
-      body: {
-        flow: "membership",
-        wasUpdate: false,
-        submission: {
-          first_name: form.first_name,
-          last_name: form.last_name,
-          email: form.email,
-          phone: form.phone,
-          membership_type: form.membership_type,
-          membership_year: year,
-          fee,
-          expiry_date: `${year}-12-31`,
-          bank_name: paymentSettings.bank_name,
-          account_name: paymentSettings.account_name,
-          account_number: paymentSettings.account_number,
-          payment_instructions: paymentSettings.payment_instructions,
-        },
-      },
-    });
-    if (notificationError) {
-      toast({title:"Application saved; email notification failed",description:"Your application is safely recorded, but the confirmation email could not be sent. NWI can still review your application.",variant:"destructive"});
-    }
-    setSubmitted(true);
+    const newApplicationId=crypto.randomUUID(), newUploadToken=crypto.randomUUID();
+    const {error}=await supabase.from("membership_applications").insert({...form,id:newApplicationId,receipt_upload_token:newUploadToken,membership_year:year,fee,expiry_date:`${year}-12-31`,accepted_at:new Date().toISOString(),policy_version:policyVersion});
+    if(error){setSubmitting(false);toast({title:error.code==="23505"?"Application already exists":"Unable to submit application",description:error.code==="23505"?"An application for this email and membership year already exists. Please contact NWI for help.":error.message,variant:"destructive"});return;}
+    setApplicationId(newApplicationId); setUploadToken(newUploadToken);
+    const extension=receiptFile.name.split(".").pop()?.toLowerCase()||"file";
+    const receiptPath=`${newApplicationId}/${newUploadToken}/${crypto.randomUUID()}.${extension}`;
+    const {error:uploadError}=await supabase.storage.from("membership-payment-receipts").upload(receiptPath,receiptFile,{contentType:receiptFile.type,upsert:false});
+    if(uploadError){setSubmitting(false);setSubmitted(true);toast({title:"Application saved; receipt upload needs retry",description:"Your application is saved. Please upload the receipt again on the confirmation screen.",variant:"destructive"});return;}
+    const {error:receiptError}=await supabase.rpc("submit_membership_payment_receipt",{p_application_id:newApplicationId,p_token:newUploadToken,p_receipt_path:receiptPath,p_payment_reference:paymentReference.trim()||null});
+    if(receiptError){setSubmitting(false);setSubmitted(true);toast({title:"Application saved; receipt submission needs attention",description:receiptError.message,variant:"destructive"});return;}
+    const {error:notificationError}=await supabase.functions.invoke("send-registration-email",{body:{flow:"membership",wasUpdate:false,submission:{
+      first_name:form.first_name,last_name:form.last_name,email:form.email,phone:form.phone,membership_type:form.membership_type,membership_year:year,fee,expiry_date:`${year}-12-31`,payment_status:"pending_verification",membership_status:"pending",
+      bank_name:paymentSettings.bank_name,account_name:paymentSettings.account_name,account_number:paymentSettings.account_number,payment_instructions:paymentSettings.payment_instructions,payment_reference:paymentReference.trim(),
+    }}});
+    setSubmitting(false);setReceiptSubmitted(true);setSubmitted(true);
+    if(notificationError) toast({title:"Application submitted; email notification failed",description:"Your application and receipt are saved. NWI can still review them.",variant:"destructive"});
+    else toast({title:"Membership application submitted",description:"Your application and payment receipt have been received. Check your email for confirmation."});
   };
 
   const uploadReceipt = async () => {
@@ -181,6 +163,21 @@ export default function BecomeAMember() {
         {step===4 && <div className="space-y-5"><h3 className="text-xl font-semibold">Step 4 — Review and agreement</h3><div className="rounded-xl bg-muted p-5 text-sm"><p><strong>Name:</strong> {form.first_name} {form.last_name}</p><p className="mt-1"><strong>Email:</strong> {form.email}</p><p className="mt-1"><strong>Category:</strong> {form.membership_type==="new"?"New Member":"Existing Member Renewal"}</p><p className="mt-1"><strong>Fee:</strong> {money(fee)}</p><p className="mt-1"><strong>Membership year:</strong> {year}</p><p className="mt-1"><strong>Expiry:</strong> {expiry}</p></div>
           <div className="rounded-xl border border-border p-4 text-sm leading-relaxed"><p className="font-semibold">Membership terms and policies</p><ul className="mt-2 list-disc space-y-2 pl-5"><li>Membership operates January–December and expires 31 December.</li><li>Late registration does not extend membership into an additional twelve-month period.</li><li>Payments are strictly non-refundable. Failure to attend does not qualify for refunds or extensions.</li><li>Members are expected to participate in scheduled activities, provide accurate information and requested materials, and monitor official communication channels.</li><li>Respect and professionalism are required. Bullying, harassment, intimidation, insults and discrimination are prohibited.</li><li>Confidentiality and privacy must be respected. Obtain consent before sharing another member's personal information, images or private business details.</li><li>Fraud, dishonest solicitation, spam and unrelated promotional activities are prohibited. Members must follow organisational guidelines.</li><li>Misconduct may result in suspension or termination. Listed benefits define the membership package; additional opportunities, sponsorships, privileges and partnerships are supplementary and not guaranteed.</li><li>Membership requires renewal for the following year.</li></ul></div>
           {([["terms_accepted","I accept the membership fees, duration, expiry and non-refundable payment terms."],["conduct_accepted","I agree to follow the NWI code of conduct and organisational guidelines."],["privacy_accepted","I acknowledge the privacy and confidentiality expectations above."]] as const).map(([name,label])=><label key={name} className="flex items-start gap-3 text-sm"><input type="checkbox" name={name} checked={form[name]} onChange={update} className="mt-1"/><span>{label} *</span></label>)}
+        </div>}
+        {step===4 && <div className="mt-6 space-y-5">
+          <div className="rounded-xl border border-primary/20 bg-muted p-5"><h4 className="font-semibold">Bank transfer details</h4>
+            {paymentSettings.bank_name && paymentSettings.account_name && paymentSettings.account_number ? <div className="mt-3 space-y-2 text-sm">
+              <p><strong>Bank:</strong> {paymentSettings.bank_name}</p><p><strong>Account name:</strong> {paymentSettings.account_name}</p><p><strong>Account number:</strong> {paymentSettings.account_number}</p>
+              {paymentSettings.payment_instructions && <p className="text-muted-foreground">{paymentSettings.payment_instructions}</p>}
+              <p className="pt-2 font-semibold">Transfer exactly {money(fee)} before submitting. Use your full name as the transfer narration where possible.</p>
+            </div> : <p className="mt-2 text-sm text-muted-foreground">Official bank details are not available yet. Please contact NWI before making any payment.</p>}
+          </div>
+          <div className="space-y-3 rounded-xl border border-border p-5"><h4 className="font-semibold">Upload payment receipt</h4>
+            <p className="text-sm text-muted-foreground">Attach the bank teller or transfer confirmation. JPG, PNG or PDF only; maximum file size 5MB. Your application cannot be submitted without the receipt.</p>
+            <div className="space-y-2"><label className="text-sm font-medium" htmlFor="application-payment-reference">Payment reference (optional)</label><Input id="application-payment-reference" value={paymentReference} onChange={e=>setPaymentReference(e.target.value)} placeholder="Bank transaction reference"/></div>
+            <div className="space-y-2"><label className="text-sm font-medium" htmlFor="application-payment-receipt">Payment receipt *</label><Input id="application-payment-receipt" type="file" accept=".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf" onChange={e=>setReceiptFile(e.target.files?.[0]||null)} required/></div>
+            {receiptFile && <p className="text-xs text-muted-foreground">Selected: {receiptFile.name}</p>}
+          </div>
         </div>}
         <div className="mt-8 flex flex-wrap justify-between gap-3 border-t border-border pt-6">{step>1?<Button type="button" variant="outline" onClick={()=>setStep(current=>current-1)}><ArrowLeft size={16}/> Back</Button>:<span/>}{step<4?<Button type="button" onClick={next}>Continue <ArrowRight size={16}/></Button>:<Button type="submit" disabled={submitting||!form.terms_accepted||!form.conduct_accepted||!form.privacy_accepted}>{submitting?"Submitting...":"Submit membership application"} <ArrowRight size={16}/></Button>}</div>
       </form>}
