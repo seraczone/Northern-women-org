@@ -112,6 +112,10 @@ export default function BecomeAMember() {
           membership_year: year,
           fee,
           expiry_date: `${year}-12-31`,
+          bank_name: paymentSettings.bank_name,
+          account_name: paymentSettings.account_name,
+          account_number: paymentSettings.account_number,
+          payment_instructions: paymentSettings.payment_instructions,
         },
       },
     });
