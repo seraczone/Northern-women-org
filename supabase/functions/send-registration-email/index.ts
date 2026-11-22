@@ -105,7 +105,7 @@ const getFlowContent = (
     if (paymentStatus === "pending_verification") {
       return {
         ...flowContent.membership,
-        submittedText: "Your membership application and payment receipt have been received. Your transfer is awaiting verification by Northern Women Initiative. Your membership will become active only after an administrator verifies the payment and approves your application.",
+        submittedText: `Your membership application and payment receipt have been received. We have recorded your payment of ₦${String(submission.fee ?? "")} for ${String(submission.membership_year ?? "")}. Your transfer is awaiting verification by Northern Women Initiative. Your membership will become active only after an administrator verifies the payment and approves your application.`,
         updatedText: "We have received your payment receipt. Your transfer is awaiting verification by Northern Women Initiative. Your membership will only become active after the payment is confirmed by an administrator.",
       };
     }
