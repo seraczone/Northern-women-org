@@ -117,7 +117,7 @@ const getFlowContent = (
     if (bankName && accountName && accountNumber) {
       return {
         ...flowContent.membership,
-        submittedText: `Your membership application has been received. To complete your application, transfer the full annual fee of ₦${fee} to the account below: Bank: ${bankName}; Account name: ${accountName}; Account number: ${accountNumber}. ${instructions} After making the transfer, return to the application page and upload your payment receipt. Your membership will only become active after NWI verifies the payment.`,
+        submittedText: `Your membership application and payment receipt have been received. We have recorded your payment of ₦${fee} for ${String(submission.membership_year ?? "")}. Your transfer is now awaiting verification by Northern Women Initiative. Your membership will become active only after an administrator verifies the payment and approves your application.`,
       };
     }
   }
