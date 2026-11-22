@@ -89,6 +89,27 @@ const getFlowContent = (
   flow: Flow,
   submission: Record<string, unknown>,
 ): FlowContent => {
+  if (flow === "membership") {
+    const paymentStatus = String(submission.payment_status ?? "");
+    const membershipStatus = String(submission.membership_status ?? "");
+    const membershipId = String(submission.membership_id ?? "").trim();
+    const expiryDate = String(submission.expiry_date ?? "").trim();
+
+    if (membershipStatus === "active" && membershipId) {
+      return {
+        ...flowContent.membership,
+        updatedText: `Your payment has been verified and your NWI membership is now active. Your permanent Membership ID is ${membershipId}.${expiryDate ? ` Your membership expires on ${expiryDate}.` : ""} Please keep this ID for future renewals and communication with NWI.`,
+      };
+    }
+
+    if (paymentStatus === "pending_verification") {
+      return {
+        ...flowContent.membership,
+        updatedText: "We have received your payment receipt. Your transfer is awaiting verification by Northern Women Initiative. Your membership will only become active after the payment is confirmed by an administrator.",
+      };
+    }
+  }
+
   if (flow === "event") {
     const rawEventName = String(submission.event_name ?? "").trim();
     const eventName = rawEventName || "your selected event";
@@ -934,9 +955,13 @@ serve(async (req) => {
     const actionText = wasUpdate ? "Updated" : "Submitted";
     const userGreeting = firstName ? `Dear ${escapeHtml(firstName)},` : "Dear Registrant,";
     const userSubject =
-      flow === "event"
-        ? `${content.confirmationTitle} ${wasUpdate ? "Updated - Update Your Calendar" : "Received - Add to Calendar"}`
-        : `${content.confirmationTitle} ${wasUpdate ? "Updated" : "Received"}`;
+      flow === "membership" && String(submission.membership_status ?? "") === "active"
+        ? "Your Northern Women Initiative Membership is Active"
+        : flow === "membership" && String(submission.payment_status ?? "") === "pending_verification"
+          ? "NWI Membership Payment Receipt Received"
+          : flow === "event"
+            ? `${content.confirmationTitle} ${wasUpdate ? "Updated - Update Your Calendar" : "Received - Add to Calendar"}`
+            : `${content.confirmationTitle} ${wasUpdate ? "Updated" : "Received"}`;
 
     await sendEmail({
       to: CONTACT_ADMIN_EMAIL,
