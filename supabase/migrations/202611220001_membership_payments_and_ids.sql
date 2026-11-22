@@ -50,8 +50,16 @@ create table if not exists public.membership_payment_settings (
   updated_at timestamptz not null default now()
 );
 
-insert into public.membership_payment_settings (id)
-values (true)
+insert into public.membership_payment_settings (
+  id, bank_name, account_name, account_number, payment_instructions
+)
+values (
+  true,
+  'Zenith Bank',
+  'Northern Women Initiative For Empowerment, Growth and Development',
+  '1310491614',
+  'Transfer the full annual membership fee in one payment. Upload your transfer receipt with your membership application.'
+)
 on conflict (id) do nothing;
 
 alter table public.membership_payment_settings enable row level security;
