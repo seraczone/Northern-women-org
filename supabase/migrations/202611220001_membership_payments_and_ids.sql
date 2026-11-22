@@ -1,7 +1,35 @@
 -- Membership payment workflow, private receipt storage, configurable bank details,
--- and permanent NWI membership IDs assigned only after verified payment + activation.
+-- and permanent NWI member records/IDs assigned only after verified payment + activation.
+
+create sequence if not exists public.nwi_membership_id_seq start with 1 increment by 1;
+
+create table if not exists public.nwi_members (
+  id uuid primary key default gen_random_uuid(),
+  membership_id text not null unique default (
+    'NWI-' || lpad(nextval('public.nwi_membership_id_seq')::text, 6, '0')
+  ),
+  email text not null,
+  first_name text not null,
+  last_name text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create unique index if not exists nwi_members_normalized_email_key
+  on public.nwi_members (lower(btrim(email)));
+
+alter table public.nwi_members enable row level security;
+
+drop policy if exists "nwi_members_admin_read" on public.nwi_members;
+create policy "nwi_members_admin_read"
+on public.nwi_members for select to authenticated
+using (exists (
+  select 1 from public.admin_users
+  where lower(email) = lower(auth.jwt() ->> 'email')
+));
 
 alter table public.membership_applications
+  add column if not exists member_id uuid references public.nwi_members(id),
   add column if not exists membership_id text,
   add column if not exists receipt_path text,
   add column if not exists receipt_upload_token text,
@@ -9,11 +37,9 @@ alter table public.membership_applications
   add column if not exists payment_verified_at timestamptz,
   add column if not exists payment_verified_by uuid references auth.users(id);
 
-create unique index if not exists membership_applications_membership_id_key
+create index if not exists membership_applications_membership_id_idx
   on public.membership_applications (membership_id)
   where membership_id is not null;
-
-create sequence if not exists public.nwi_membership_id_seq start with 1 increment by 1;
 
 create table if not exists public.membership_payment_settings (
   id boolean primary key default true check (id = true),
@@ -54,7 +80,8 @@ security definer
 set search_path = public
 as $$
 declare
-  existing_member_id text;
+  resolved_member_id uuid;
+  resolved_membership_id text;
 begin
   new.updated_at := now();
 
@@ -67,28 +94,38 @@ begin
       if new.membership_id is distinct from old.membership_id then
         raise exception 'A membership ID cannot be changed once assigned';
       end if;
+      new.member_id := old.member_id;
       new.membership_id := old.membership_id;
-    elsif tg_op = 'INSERT' or new.membership_id is null then
-      -- Renewals retain the original permanent ID when the email matches a prior member.
-      select m.membership_id into existing_member_id
-      from public.membership_applications m
-      where lower(btrim(m.email)) = lower(btrim(new.email))
-        and m.membership_id is not null
-        and m.membership_status = 'active'
-        and (tg_op <> 'UPDATE' or m.id <> new.id)
-      order by m.membership_year desc, m.created_at asc
+    else
+      -- A renewal with the same normalized email reuses the person's permanent ID.
+      select id, membership_id
+        into resolved_member_id, resolved_membership_id
+      from public.nwi_members
+      where lower(btrim(email)) = lower(btrim(new.email))
       limit 1;
 
-      if existing_member_id is not null then
-        new.membership_id := existing_member_id;
+      if resolved_member_id is null then
+        insert into public.nwi_members (email, first_name, last_name)
+        values (lower(btrim(new.email)), new.first_name, new.last_name)
+        returning id, membership_id
+          into resolved_member_id, resolved_membership_id;
       else
-        new.membership_id := 'NWI-' || lpad(nextval('public.nwi_membership_id_seq')::text, 6, '0');
+        update public.nwi_members
+        set first_name = new.first_name,
+            last_name = new.last_name,
+            updated_at = now()
+        where id = resolved_member_id;
       end if;
+
+      new.member_id := resolved_member_id;
+      new.membership_id := resolved_membership_id;
     end if;
   else
     if tg_op = 'UPDATE' and old.membership_id is not null then
+      new.member_id := old.member_id;
       new.membership_id := old.membership_id;
     else
+      new.member_id := null;
       new.membership_id := null;
     end if;
   end if;
