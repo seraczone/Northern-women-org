@@ -108,6 +108,18 @@ const getFlowContent = (
         updatedText: "We have received your payment receipt. Your transfer is awaiting verification by Northern Women Initiative. Your membership will only become active after the payment is confirmed by an administrator.",
       };
     }
+
+    const bankName = String(submission.bank_name ?? "").trim();
+    const accountName = String(submission.account_name ?? "").trim();
+    const accountNumber = String(submission.account_number ?? "").trim();
+    const fee = String(submission.fee ?? "").trim();
+    const instructions = String(submission.payment_instructions ?? "").trim();
+    if (bankName && accountName && accountNumber) {
+      return {
+        ...flowContent.membership,
+        submittedText: `Your membership application has been received. To complete your application, transfer the full annual fee of ₦${fee} to the account below: Bank: ${bankName}; Account name: ${accountName}; Account number: ${accountNumber}. ${instructions} After making the transfer, return to the application page and upload your payment receipt. Your membership will only become active after NWI verifies the payment.`,
+      };
+    }
   }
 
   if (flow === "event") {
