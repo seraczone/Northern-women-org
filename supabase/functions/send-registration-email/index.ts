@@ -105,6 +105,7 @@ const getFlowContent = (
     if (paymentStatus === "pending_verification") {
       return {
         ...flowContent.membership,
+        submittedText: "Your membership application and payment receipt have been received. Your transfer is awaiting verification by Northern Women Initiative. Your membership will become active only after an administrator verifies the payment and approves your application.",
         updatedText: "We have received your payment receipt. Your transfer is awaiting verification by Northern Women Initiative. Your membership will only become active after the payment is confirmed by an administrator.",
       };
     }
@@ -113,7 +114,6 @@ const getFlowContent = (
     const accountName = String(submission.account_name ?? "").trim();
     const accountNumber = String(submission.account_number ?? "").trim();
     const fee = String(submission.fee ?? "").trim();
-    const instructions = String(submission.payment_instructions ?? "").trim();
     if (bankName && accountName && accountNumber) {
       return {
         ...flowContent.membership,
