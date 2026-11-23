@@ -185,7 +185,7 @@ begin
     raise exception 'Only an authorised administrator can decide membership payments';
   end if;
 
-  if p_decision not in ('approved','declined') then
+  if p_decision is null or p_decision not in ('approved','declined') then
     raise exception 'Decision must be approved or declined';
   end if;
 
