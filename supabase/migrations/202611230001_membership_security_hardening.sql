@@ -80,7 +80,7 @@ begin
   end if;
 
   if new.payment_status = 'paid' then
-    if new.payment_decision <> 'approved'
+    if new.payment_decision is distinct from 'approved'
        or new.payment_decided_at is null
        or new.payment_decided_by is null
        or new.payment_verified_at is null
@@ -91,7 +91,7 @@ begin
   end if;
 
   if new.payment_status = 'declined' then
-    if new.payment_decision <> 'declined'
+    if new.payment_decision is distinct from 'declined'
        or new.payment_decided_at is null
        or new.payment_decided_by is null
        or new.membership_status = 'active' then
