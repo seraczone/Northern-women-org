@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, ExternalLink, RefreshCw, Save, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Download, ExternalLink, RefreshCw, Save, XCircle } from "lucide-react";
 import AdminLayout from "./AdminLayout";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/hooks/use-toast";
@@ -10,10 +10,10 @@ type Membership = {
   id:string; member_id:string|null; membership_id:string|null;
   first_name:string; last_name:string; email:string; phone:string;
   membership_type:"new"|"renewal"; membership_year:number; fee:number;
-  payment_status:"unpaid"|"pending_verification"|"paid"|"failed"|"cancelled";
+  payment_status:"unpaid"|"pending_verification"|"paid"|"failed"|"cancelled"|"declined";
   membership_status:"pending"|"active"|"expired"|"suspended"|"terminated";
   payment_reference:string|null; receipt_path:string|null; receipt_uploaded_at:string|null;
-  payment_verified_at:string|null; payment_verified_by:string|null;
+  payment_verified_at:string|null; payment_verified_by:string|null;\n  payment_decision:"approved"|"declined"|null; payment_decided_at:string|null; payment_decline_reason:string|null;
   admin_notes:string|null; created_at:string; expiry_date:string;
 };
 type PaymentSettings = {bank_name:string;account_name:string;account_number:string;payment_instructions:string};
@@ -85,31 +85,22 @@ export default function AdminMemberships() {
     window.open(data.signedUrl,"_blank","noopener,noreferrer");
   };
 
-  const verifyPayment=async(row:Membership)=>{
-    if(!row.receipt_path){toast({title:"Receipt required",description:"The member must upload a receipt before payment can be verified.",variant:"destructive"});return;}
-    const {data:{user}}=await supabase.auth.getUser();
-    const ok=await updateRow(row.id,{payment_status:"paid",payment_verified_at:new Date().toISOString(),payment_verified_by:user?.id||null});
-    if(ok) toast({title:"Payment verified",description:"You can now activate this membership."});
-  };
-
-  const activateMembership=async(row:Membership)=>{
-    if(row.payment_status!=="paid"){toast({title:"Payment not verified",description:"Verify the bank transfer before activating this membership.",variant:"destructive"});return;}
+  const decidePayment=async(row:Membership,decision:"approved"|"declined")=>{
+    if(!row.receipt_path){toast({title:"Receipt required",description:"The applicant must upload a receipt before a decision can be made.",variant:"destructive"});return;}
+    const declineReason=decision==="declined" ? window.prompt("Optional: enter the reason for declining this payment") : null;
+    if(decision==="declined" && declineReason===null) return;
     setSaving(row.id);
-    const {error}=await supabase.from("membership_applications").update({membership_status:"active"}).eq("id",row.id);
-    if(error){setSaving(null);toast({title:"Unable to activate membership",description:error.message,variant:"destructive"});return;}
-    const {data:updated}=await supabase.from("membership_applications").select("*").eq("id",row.id).single();
-    setSaving(null);
-    await load();
-    if(updated){
-      const {error:emailError}=await supabase.functions.invoke("send-registration-email",{body:{flow:"membership",wasUpdate:true,submission:{
-        first_name:updated.first_name,last_name:updated.last_name,email:updated.email,phone:updated.phone,
-        membership_type:updated.membership_type,membership_year:updated.membership_year,fee:updated.fee,
-        payment_status:updated.payment_status,membership_status:updated.membership_status,
-        membership_id:updated.membership_id,expiry_date:updated.expiry_date,
-      }}});
-      if(emailError) toast({title:"Membership activated; email failed",description:"The member is active, but the confirmation email could not be sent.",variant:"destructive"});
-      else toast({title:"Membership activated",description:`Membership ID: ${updated.membership_id||"assigned"}`});
-    }
+    const {data,error}=await supabase.rpc("admin_decide_membership_payment",{
+      p_application_id:row.id,p_decision:decision,p_decline_reason:declineReason?.trim()||null,
+    });
+    if(error){setSaving(null);toast({title:"Unable to record payment decision",description:error.message,variant:"destructive"});return;}
+    const decided=data as Membership;
+    const {error:emailError}=await supabase.functions.invoke("send-registration-email",{body:{
+      flow:"membership_decision",decision,application_id:row.id,
+    }});
+    await load();setSaving(null);
+    if(emailError){toast({title:"Decision saved; email failed",description:"The decision was recorded, but the applicant notification could not be sent.",variant:"destructive"});return;}
+    toast({title:decision==="approved"?"Payment approved and membership activated":"Payment declined",description:decision==="approved"?`Membership ID: ${decided.membership_id||"assigned"}`:"The applicant has been notified."});
   };
 
   const exportCsv=()=>{
@@ -143,18 +134,18 @@ export default function AdminMemberships() {
     <div className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 md:flex-row">
       <Input placeholder="Search name, email, phone or NWI ID" value={search} onChange={e=>setSearch(e.target.value)}/>
       <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={year} onChange={e=>setYear(e.target.value)}><option value="all">All years</option>{Array.from(new Set(rows.map(r=>r.membership_year))).sort((a,b)=>b-a).map(y=><option key={y} value={y}>{y}</option>)}</select>
-      <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={payment} onChange={e=>setPayment(e.target.value)}><option value="all">All payment statuses</option>{["unpaid","pending_verification","paid","failed","cancelled"].map(s=><option key={s} value={s}>{s.replaceAll("_"," ")}</option>)}</select>
+      <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={payment} onChange={e=>setPayment(e.target.value)}><option value="all">All payment statuses</option>{["unpaid","pending_verification","paid","declined","failed","cancelled"].map(s=><option key={s} value={s}>{s.replaceAll("_"," ")}</option>)}</select>
       <select className="h-10 rounded-md border border-input bg-background px-3 text-sm" value={membershipStatus} onChange={e=>setMembershipStatus(e.target.value)}><option value="all">All membership statuses</option>{["pending","active","expired","suspended","terminated"].map(s=><option key={s} value={s}>{s}</option>)}</select>
     </div>
 
     {loading?<p>Loading membership records...</p>:!filtered.length?<p className="text-muted-foreground">No membership applications found.</p>:<div className="space-y-4">{filtered.map(row=><article key={row.id} className="rounded-xl border border-border bg-card p-5 shadow-sm">
-      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between"><div><h2 className="text-lg font-semibold">{row.first_name} {row.last_name}</h2><p className="text-sm text-muted-foreground">{row.email} · {row.phone}</p><p className="mt-2 text-sm">{row.membership_type==="new"?"New Member":"Renewal"} · {row.membership_year} · {money(row.fee)} · Expires {row.expiry_date}</p><p className="mt-1 text-xs text-muted-foreground">Applied {new Date(row.created_at).toLocaleString()}</p></div><div className="space-y-2 text-right"><select aria-label="Membership status" className="h-9 rounded-md border border-input bg-background px-2 text-xs capitalize" value={row.membership_status} onChange={e=>{const next=e.target.value as Membership["membership_status"];if(next==="active")void activateMembership(row);else void updateRow(row.id,{membership_status:next});}}><option value="pending">Pending</option><option value="active">Active</option><option value="expired">Expired</option><option value="suspended">Suspended</option><option value="terminated">Terminated</option></select>{row.membership_id&&<p className="font-mono text-sm font-bold text-primary">{row.membership_id}</p>}</div></div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><div className="rounded-lg bg-muted p-3"><p className="text-xs text-muted-foreground">Payment status</p><select aria-label="Payment status" disabled={row.membership_status==="active"} className="mt-1 h-8 w-full rounded-md border border-input bg-background px-2 text-xs capitalize" value={row.payment_status} onChange={e=>void updateRow(row.id,{payment_status:e.target.value})}><option value="unpaid">Unpaid</option><option value="pending_verification">Pending verification</option><option value="paid" disabled>Paid (verify receipt)</option><option value="failed">Failed</option><option value="cancelled">Cancelled</option></select></div><div className="rounded-lg bg-muted p-3"><p className="text-xs text-muted-foreground">Receipt</p>{row.receipt_path?<Button variant="link" className="h-auto p-0" onClick={()=>void openReceipt(row)}>View receipt <ExternalLink className="ml-1 h-3 w-3"/></Button>:<p className="text-sm">Not uploaded</p>}</div><div className="rounded-lg bg-muted p-3"><p className="text-xs text-muted-foreground">Receipt submitted</p><p className="text-sm">{row.receipt_uploaded_at?new Date(row.receipt_uploaded_at).toLocaleString():"—"}</p></div><div className="rounded-lg bg-muted p-3"><p className="text-xs text-muted-foreground">Payment reference</p><p className="break-all text-sm">{row.payment_reference||"—"}</p></div></div>
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between"><div><h2 className="text-lg font-semibold">{row.first_name} {row.last_name}</h2><p className="text-sm text-muted-foreground">{row.email} · {row.phone}</p><p className="mt-2 text-sm">{row.membership_type==="new"?"New Member":"Renewal"} · {row.membership_year} · {money(row.fee)} · Expires {row.expiry_date}</p><p className="mt-1 text-xs text-muted-foreground">Applied {new Date(row.created_at).toLocaleString()}</p></div><div className="space-y-2 text-right"><span className="inline-flex rounded-full border px-3 py-1 text-xs font-semibold capitalize">{row.membership_status==="active"?"Active":row.payment_status==="declined"?"Declined":"Pending"}</span>{row.membership_id&&<p className="font-mono text-sm font-bold text-primary">{row.membership_id}</p>}</div></div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><div className="rounded-lg bg-muted p-3"><p className="text-xs text-muted-foreground">Payment status</p><p className="mt-1 text-sm font-semibold capitalize">{row.payment_status.replaceAll("_"," ")}</p></div><div className="rounded-lg bg-muted p-3"><p className="text-xs text-muted-foreground">Receipt</p>{row.receipt_path?<Button variant="link" className="h-auto p-0" onClick={()=>void openReceipt(row)}>View receipt <ExternalLink className="ml-1 h-3 w-3"/></Button>:<p className="text-sm">Not uploaded</p>}</div><div className="rounded-lg bg-muted p-3"><p className="text-xs text-muted-foreground">Receipt submitted</p><p className="text-sm">{row.receipt_uploaded_at?new Date(row.receipt_uploaded_at).toLocaleString():"—"}</p></div><div className="rounded-lg bg-muted p-3"><p className="text-xs text-muted-foreground">Payment reference</p><p className="break-all text-sm">{row.payment_reference||"—"}</p></div></div>
       <div className="mt-4 flex flex-wrap gap-2">
-        {row.payment_status==="pending_verification"&&<Button size="sm" onClick={()=>void verifyPayment(row)} disabled={saving===row.id}><ShieldCheck className="mr-2 h-4 w-4"/>Verify payment</Button>}
-        {row.payment_status==="paid"&&row.membership_status!=="active"&&<Button size="sm" onClick={()=>void activateMembership(row)} disabled={saving===row.id}>Approve and activate</Button>}
-        {row.membership_status==="active"&&<span className="self-center text-sm font-medium text-primary">Active member</span>}
-        {row.payment_status==="unpaid"&&<span className="self-center text-sm text-muted-foreground">Waiting for member payment</span>}
+        {row.payment_status==="pending_verification"&&<><Button size="sm" onClick={()=>void decidePayment(row,"approved")} disabled={saving===row.id} className="bg-amber-500 text-white hover:bg-amber-600"><CheckCircle2 className="mr-2 h-4 w-4"/>Approve Payment</Button><Button size="sm" variant="destructive" onClick={()=>void decidePayment(row,"declined")} disabled={saving===row.id}><XCircle className="mr-2 h-4 w-4"/>Reject Payment</Button></>}
+        {row.payment_status==="paid"&&<span className="self-center text-sm font-medium text-primary">Approved · Active member</span>}
+        {row.payment_status==="declined"&&<span className="self-center text-sm font-medium text-destructive">Payment declined</span>}
+        {row.payment_status==="unpaid"&&<span className="self-center text-sm text-muted-foreground">Waiting for member payment and receipt</span>}
         {saving===row.id&&<span className="self-center text-xs text-muted-foreground">Saving...</span>}
       </div>
       <label className="mt-4 block space-y-1 text-xs font-medium">Internal admin notes<textarea className="min-h-16 w-full rounded-md border border-input bg-background p-3 text-sm" defaultValue={row.admin_notes||""} placeholder="Internal notes..." onBlur={e=>{if(e.target.value!==(row.admin_notes||""))void updateRow(row.id,{admin_notes:e.target.value||null});}}/></label>
