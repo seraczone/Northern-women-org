@@ -929,10 +929,6 @@ serve(async (req) => {
       throw new Error("Missing RESEND_API_KEY secret");
     }
 
-    if (!CONTACT_ADMIN_EMAIL) {
-      throw new Error("Missing CONTACT_ADMIN_EMAIL secret");
-    }
-
     const body = await req.json();
     const flowValue = String(body.flow ?? "");
 
@@ -1024,12 +1020,15 @@ serve(async (req) => {
           replyTo: CONTACT_ADMIN_EMAIL,
           idempotencyKey: `nwi-membership-${applicationId}-${decision}`,
         });
-        await adminClient.from("membership_applications").update({
+        const { error: sentStatusError } = await adminClient.from("membership_applications").update({
           decision_email_status: "sent",
           decision_email_sent_at: new Date().toISOString(),
           decision_email_resend_id: typeof resendResult?.id === "string" ? resendResult.id : null,
           decision_email_error: null,
         }).eq("id", applicationId);
+        if (sentStatusError) {
+          throw new Error(`Email was accepted by Resend, but delivery status could not be saved: ${sentStatusError.message}`);
+        }
       } catch (emailError) {
         const emailMessage = emailError instanceof Error ? emailError.message : "Unknown email delivery error";
         await adminClient.from("membership_applications").update({
@@ -1040,6 +1039,10 @@ serve(async (req) => {
       }
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
     }
+    if (!CONTACT_ADMIN_EMAIL) {
+      throw new Error("Missing CONTACT_ADMIN_EMAIL secret");
+    }
+
     const flow = flowValue as Flow;
     const wasUpdate = Boolean(body.wasUpdate);
     const submission =
