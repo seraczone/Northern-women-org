@@ -13,7 +13,8 @@ type Membership = {
   payment_status:"unpaid"|"pending_verification"|"paid"|"failed"|"cancelled"|"declined";
   membership_status:"pending"|"active"|"expired"|"suspended"|"terminated";
   payment_reference:string|null; receipt_path:string|null; receipt_uploaded_at:string|null;
-  payment_verified_at:string|null; payment_verified_by:string|null;\n  payment_decision:"approved"|"declined"|null; payment_decided_at:string|null; payment_decline_reason:string|null;
+  payment_verified_at:string|null; payment_verified_by:string|null;
+  payment_decision:"approved"|"declined"|null; payment_decided_at:string|null; payment_decline_reason:string|null;
   admin_notes:string|null; created_at:string; expiry_date:string;
 };
 type PaymentSettings = {bank_name:string;account_name:string;account_number:string;payment_instructions:string};
