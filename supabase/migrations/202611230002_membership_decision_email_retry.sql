@@ -22,6 +22,21 @@ alter table public.membership_applications
   add constraint membership_applications_decision_email_attempts_check
   check (decision_email_attempts >= 0);
 
+alter table public.membership_applications
+  drop constraint if exists membership_applications_decision_email_requires_decision_check;
+alter table public.membership_applications
+  add constraint membership_applications_decision_email_requires_decision_check
+  check (payment_decision is not null or decision_email_status = 'pending');
+
+alter table public.membership_applications
+  drop constraint if exists membership_applications_decision_email_sent_timestamp_check;
+alter table public.membership_applications
+  add constraint membership_applications_decision_email_sent_timestamp_check
+  check (
+    (decision_email_status = 'sent' and decision_email_sent_at is not null)
+    or (decision_email_status <> 'sent' and decision_email_sent_at is null)
+  );
+
 create index if not exists membership_applications_decision_email_retry_idx
   on public.membership_applications (decision_email_status, decision_email_started_at)
   where payment_decision is not null;
