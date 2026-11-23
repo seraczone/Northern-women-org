@@ -862,6 +862,7 @@ const sendEmail = async ({
   html,
   replyTo,
   attachments,
+  idempotencyKey,
 }: {
   to: string;
   subject: string;
