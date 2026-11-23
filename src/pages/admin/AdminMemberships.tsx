@@ -15,6 +15,7 @@ type Membership = {
   payment_reference:string|null; receipt_path:string|null; receipt_uploaded_at:string|null;
   payment_verified_at:string|null; payment_verified_by:string|null;
   payment_decision:"approved"|"declined"|null; payment_decided_at:string|null; payment_decline_reason:string|null;
+  decision_email_status:"pending"|"sending"|"sent"|"failed"; decision_email_attempts:number; decision_email_started_at:string|null; decision_email_sent_at:string|null; decision_email_error:string|null;
   admin_notes:string|null; created_at:string; expiry_date:string;
 };
 type PaymentSettings = {bank_name:string;account_name:string;account_number:string;payment_instructions:string};
@@ -86,6 +87,16 @@ export default function AdminMemberships() {
     window.open(data.signedUrl,"_blank","noopener,noreferrer");
   };
 
+  const sendDecisionEmail=async(row:Membership,decision:"approved"|"declined",isRetry=false)=>{
+    setSaving(row.id);
+    const {error}=await supabase.functions.invoke("send-registration-email",{body:{
+      flow:"membership_decision",decision,application_id:row.id,
+    }});
+    await load();setSaving(null);
+    if(error){toast({title:isRetry?"Email retry failed":"Decision saved; email failed",description:error.message||"The applicant notification could not be sent. You can retry it from this record.",variant:"destructive"});return;}
+    toast({title:isRetry?"Notification email sent":"Decision notification sent",description:"The applicant has been notified."});
+  };
+
   const decidePayment=async(row:Membership,decision:"approved"|"declined")=>{
     if(!row.receipt_path){toast({title:"Receipt required",description:"The applicant must upload a receipt before a decision can be made.",variant:"destructive"});return;}
     const declineReason=decision==="declined" ? window.prompt("Optional: enter the reason for declining this payment") : null;
@@ -96,12 +107,7 @@ export default function AdminMemberships() {
     });
     if(error){setSaving(null);toast({title:"Unable to record payment decision",description:error.message,variant:"destructive"});return;}
     const decided=data as Membership;
-    const {error:emailError}=await supabase.functions.invoke("send-registration-email",{body:{
-      flow:"membership_decision",decision,application_id:row.id,
-    }});
-    await load();setSaving(null);
-    if(emailError){toast({title:"Decision saved; email failed",description:"The decision was recorded, but the applicant notification could not be sent.",variant:"destructive"});return;}
-    toast({title:decision==="approved"?"Payment approved and membership activated":"Payment declined",description:decision==="approved"?`Membership ID: ${decided.membership_id||"assigned"}`:"The applicant has been notified."});
+    await sendDecisionEmail({...row,...decided,decision_email_status:"pending"},decision,false);
   };
 
   const exportCsv=()=>{
@@ -147,6 +153,9 @@ export default function AdminMemberships() {
         {row.payment_status==="paid"&&<span className="self-center text-sm font-medium text-primary">Approved · Active member</span>}
         {row.payment_status==="declined"&&<span className="self-center text-sm font-medium text-destructive">Payment declined</span>}
         {row.payment_status==="unpaid"&&<span className="self-center text-sm text-muted-foreground">Waiting for member payment and receipt</span>}
+        {(row.payment_decision==="approved"||row.payment_decision==="declined")&&<span className="self-center text-xs text-muted-foreground">Decision email: {row.decision_email_status||"pending"} · Attempts: {row.decision_email_attempts||0}</span>}
+        {(row.payment_decision==="approved"||row.payment_decision==="declined")&&row.decision_email_status!=="sent"&&<Button size="sm" variant="outline" onClick={()=>void sendDecisionEmail(row,row.payment_decision!,true)} disabled={saving===row.id}><RefreshCw className="mr-2 h-4 w-4"/>Retry notification</Button>}
+        {row.decision_email_error&&<p className="w-full text-xs text-destructive">Email error: {row.decision_email_error}</p>}
         {saving===row.id&&<span className="self-center text-xs text-muted-foreground">Saving...</span>}
       </div>
       <label className="mt-4 block space-y-1 text-xs font-medium">Internal admin notes<textarea className="min-h-16 w-full rounded-md border border-input bg-background p-3 text-sm" defaultValue={row.admin_notes||""} placeholder="Internal notes..." onBlur={e=>{if(e.target.value!==(row.admin_notes||""))void updateRow(row.id,{admin_notes:e.target.value||null});}}/></label>
