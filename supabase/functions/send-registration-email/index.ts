@@ -26,7 +26,7 @@ const PUBLIC_SITE_URL = (
   Deno.env.get("PUBLIC_SITE_URL") ?? "https://northernwomeninitiative.org"
 ).replace(/\/+$/, "");
 
-type Flow = "event" | "summit_2026" | "volunteer" | "membership" | "membership_decision";
+type Flow = "event" | "summit_2026" | "volunteer" | "membership";
 
 type FlowContent = {
   adminLabel: string;
@@ -931,10 +931,10 @@ serve(async (req) => {
     }
 
     const body = await req.json();
-    const flow = String(body.flow ?? "") as Flow;
+    const flowValue = String(body.flow ?? "");
 
     // Authenticated, admin-only membership decision email. Summit/public flows stay unchanged.
-    if (flow === "membership_decision") {
+    if (flowValue === "membership_decision") {
       if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
         throw new Error("Missing Supabase service configuration for membership decision email");
       }
@@ -983,6 +983,7 @@ serve(async (req) => {
       await sendEmail({ to: String(application.email), subject: decisionSubject, html: decisionHtml, replyTo: CONTACT_ADMIN_EMAIL });
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
     }
+    const flow = flowValue as Flow;
     const wasUpdate = Boolean(body.wasUpdate);
     const submission =
       typeof body.submission === "object" && body.submission !== null
