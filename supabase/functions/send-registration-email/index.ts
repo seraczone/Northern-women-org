@@ -868,6 +868,7 @@ const sendEmail = async ({
   html: string;
   replyTo?: string;
   attachments?: EmailAttachment[];
+  idempotencyKey?: string;
 }) => {
   const payload: Record<string, unknown> = {
     from: RESEND_FROM_EMAIL,
@@ -894,6 +895,7 @@ const sendEmail = async ({
     headers: {
       Authorization: `Bearer ${RESEND_API_KEY}`,
       "Content-Type": "application/json",
+      ...(idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {}),
     },
     body: JSON.stringify(payload),
   });
@@ -970,6 +972,39 @@ serve(async (req) => {
       if (!approved && !declined) {
         return new Response(JSON.stringify({ error: "Membership record does not match the requested decision" }), { status: 409, headers: corsHeaders });
       }
+      const { data: emailState, error: emailStateError } = await adminClient
+        .from("membership_applications")
+        .select("decision_email_status,decision_email_started_at,decision_email_attempts")
+        .eq("id", applicationId).maybeSingle();
+      if (emailStateError || !emailState) {
+        return new Response(JSON.stringify({ error: "Unable to read membership email status" }), { status: 500, headers: corsHeaders });
+      }
+      if (emailState.decision_email_status === "sent") {
+        return new Response(JSON.stringify({ success: true, already_sent: true }), { status: 200, headers: corsHeaders });
+      }
+      if (emailState.decision_email_status === "sending" && emailState.decision_email_started_at &&
+          Date.now() - new Date(emailState.decision_email_started_at).getTime() < 5 * 60 * 1000) {
+        return new Response(JSON.stringify({ error: "The decision email is already being sent. Please wait a few minutes before retrying." }), { status: 409, headers: corsHeaders });
+      }
+      let claim = adminClient.from("membership_applications")
+        .update({
+          decision_email_status: "sending",
+          decision_email_started_at: new Date().toISOString(),
+          decision_email_attempts: Number(emailState.decision_email_attempts ?? 0) + 1,
+          decision_email_error: null,
+        })
+        .eq("id", applicationId)
+        .eq("payment_decision", decision)
+        .eq("decision_email_status", emailState.decision_email_status)
+        .select("id");
+      if (emailState.decision_email_status === "sending" && emailState.decision_email_started_at) {
+        claim = claim.lt("decision_email_started_at", new Date(Date.now() - 5 * 60 * 1000).toISOString());
+      }
+      const { data: claimed, error: claimError } = await claim;
+      if (claimError || !claimed?.length) {
+        return new Response(JSON.stringify({ error: "The email could not be claimed for sending. Refresh and try again." }), { status: 409, headers: corsHeaders });
+      }
+
       const name = escapeHtml(String(application.first_name ?? "Member"));
       const membershipId = escapeHtml(String(application.membership_id ?? ""));
       const expiry = escapeHtml(String(application.expiry_date ?? ""));
@@ -980,7 +1015,28 @@ serve(async (req) => {
       const decisionHtml = approved
         ? \`<p>Dear \${name},</p><p>We are pleased to inform you that your payment has been confirmed by Northern Women Initiative and your membership application has been approved.</p><p><strong>Your permanent Membership ID:</strong> \${membershipId}</p><p><strong>Membership year:</strong> \${escapeHtml(String(application.membership_year))}</p><p><strong>Expiry date:</strong> \${expiry}</p><p>Please keep your Membership ID for future renewals and communication with NWI.</p>\${buildSupportBlock()}<p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>\`
         : \`<p>Dear \${name},</p><p>We regret to inform you that your membership payment/application has been declined following the organisation's review.</p>\${declineReason ? \`<p><strong>Reason:</strong> \${declineReason}</p>\` : ""}<p>Your membership has not been activated and no new membership ID has been issued. Please contact Northern Women Initiative if you need clarification or wish to discuss the next steps.</p>\${buildSupportBlock()}<p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>\`;
-      await sendEmail({ to: String(application.email), subject: decisionSubject, html: decisionHtml, replyTo: CONTACT_ADMIN_EMAIL });
+      try {
+        const resendResult = await sendEmail({
+          to: String(application.email),
+          subject: decisionSubject,
+          html: decisionHtml,
+          replyTo: CONTACT_ADMIN_EMAIL,
+          idempotencyKey: `nwi-membership-${applicationId}-${decision}`,
+        });
+        await adminClient.from("membership_applications").update({
+          decision_email_status: "sent",
+          decision_email_sent_at: new Date().toISOString(),
+          decision_email_resend_id: typeof resendResult?.id === "string" ? resendResult.id : null,
+          decision_email_error: null,
+        }).eq("id", applicationId);
+      } catch (emailError) {
+        const emailMessage = emailError instanceof Error ? emailError.message : "Unknown email delivery error";
+        await adminClient.from("membership_applications").update({
+          decision_email_status: "failed",
+          decision_email_error: emailMessage.slice(0, 2000),
+        }).eq("id", applicationId);
+        throw emailError;
+      }
       return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
     }
     const flow = flowValue as Flow;
