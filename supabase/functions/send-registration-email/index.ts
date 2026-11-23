@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import * as QRCode from "npm:qrcode@1.5.4";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,6 +11,8 @@ const corsHeaders = {
 };
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 const RESEND_FROM_EMAIL =
   Deno.env.get("RESEND_FROM_EMAIL") ??
   "Northern Women Initiative <onboarding@resend.dev>";
@@ -23,7 +26,7 @@ const PUBLIC_SITE_URL = (
   Deno.env.get("PUBLIC_SITE_URL") ?? "https://northernwomeninitiative.org"
 ).replace(/\/+$/, "");
 
-type Flow = "event" | "summit_2026" | "volunteer" | "membership";
+type Flow = "event" | "summit_2026" | "volunteer" | "membership" | "membership_decision";
 
 type FlowContent = {
   adminLabel: string;
@@ -929,6 +932,57 @@ serve(async (req) => {
 
     const body = await req.json();
     const flow = String(body.flow ?? "") as Flow;
+
+    // Authenticated, admin-only membership decision email. Summit/public flows stay unchanged.
+    if (flow === "membership_decision") {
+      if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+        throw new Error("Missing Supabase service configuration for membership decision email");
+      }
+      const authorization = req.headers.get("Authorization") ?? "";
+      const accessToken = authorization.replace(/^Bearer\s+/i, "");
+      if (!accessToken || accessToken === authorization) {
+        return new Response(JSON.stringify({ error: "Administrator authentication required" }), { status: 401, headers: corsHeaders });
+      }
+      const adminClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false } });
+      const { data: authData, error: authError } = await adminClient.auth.getUser(accessToken);
+      if (authError || !authData.user?.email) {
+        return new Response(JSON.stringify({ error: "Invalid administrator session" }), { status: 401, headers: corsHeaders });
+      }
+      const { data: adminRecord, error: adminError } = await adminClient
+        .from("admin_users").select("email").ilike("email", authData.user.email).maybeSingle();
+      if (adminError || !adminRecord) {
+        return new Response(JSON.stringify({ error: "Administrator access required" }), { status: 403, headers: corsHeaders });
+      }
+      const decision = String(body.decision ?? "");
+      if (decision !== "approved" && decision !== "declined") {
+        return new Response(JSON.stringify({ error: "Invalid membership decision" }), { status: 400, headers: corsHeaders });
+      }
+      const applicationId = String(body.application_id ?? "");
+      const { data: application, error: applicationError } = await adminClient
+        .from("membership_applications")
+        .select("first_name,last_name,email,membership_type,membership_year,fee,payment_status,membership_status,membership_id,expiry_date,payment_decision,payment_decided_by,payment_decline_reason")
+        .eq("id", applicationId).maybeSingle();
+      if (applicationError || !application || application.payment_decision !== decision || application.payment_decided_by !== authData.user.id) {
+        return new Response(JSON.stringify({ error: "No matching decision made by this administrator was found" }), { status: 409, headers: corsHeaders });
+      }
+      const approved = decision === "approved" && application.payment_status === "paid" && application.membership_status === "active" && Boolean(application.membership_id);
+      const declined = decision === "declined" && application.payment_status === "declined" && application.membership_status !== "active";
+      if (!approved && !declined) {
+        return new Response(JSON.stringify({ error: "Membership record does not match the requested decision" }), { status: 409, headers: corsHeaders });
+      }
+      const name = escapeHtml(String(application.first_name ?? "Member"));
+      const membershipId = escapeHtml(String(application.membership_id ?? ""));
+      const expiry = escapeHtml(String(application.expiry_date ?? ""));
+      const declineReason = escapeHtml(String(application.payment_decline_reason ?? ""));
+      const decisionSubject = approved
+        ? "Your Northern Women Initiative Membership Has Been Approved"
+        : "Update on Your Northern Women Initiative Membership Application";
+      const decisionHtml = approved
+        ? \`<p>Dear \${name},</p><p>We are pleased to inform you that your payment has been confirmed by Northern Women Initiative and your membership application has been approved.</p><p><strong>Your permanent Membership ID:</strong> \${membershipId}</p><p><strong>Membership year:</strong> \${escapeHtml(String(application.membership_year))}</p><p><strong>Expiry date:</strong> \${expiry}</p><p>Please keep your Membership ID for future renewals and communication with NWI.</p>\${buildSupportBlock()}<p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>\`
+        : \`<p>Dear \${name},</p><p>We regret to inform you that your membership payment/application has been declined following the organisation's review.</p>\${declineReason ? \`<p><strong>Reason:</strong> \${declineReason}</p>\` : ""}<p>Your membership has not been activated and no new membership ID has been issued. Please contact Northern Women Initiative if you need clarification or wish to discuss the next steps.</p>\${buildSupportBlock()}<p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>\`;
+      await sendEmail({ to: String(application.email), subject: decisionSubject, html: decisionHtml, replyTo: CONTACT_ADMIN_EMAIL });
+      return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders });
+    }
     const wasUpdate = Boolean(body.wasUpdate);
     const submission =
       typeof body.submission === "object" && body.submission !== null
