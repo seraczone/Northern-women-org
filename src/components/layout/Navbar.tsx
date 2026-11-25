@@ -48,7 +48,7 @@ const Navbar = () => {
           {/* Desktop CTA */}
           <div className="hidden lg:flex items-center gap-4">
             <Button variant="gold" size="lg" asChild>
-              <Link to="/become-a-member">Become a Member</Link>
+              <Link to="/donate">Donate</Link>
             </Button>
           </div>
 
@@ -82,7 +82,7 @@ const Navbar = () => {
               ))}
               <div className="px-4 pt-4 border-t border-border">
                 <Button variant="gold" className="w-full" asChild>
-                  <Link to="/become-a-member">Become a Member</Link>
+                  <Link to="/donate" onClick={() => setIsOpen(false)}>Donate</Link>
                 </Button>
               </div>
             </div>

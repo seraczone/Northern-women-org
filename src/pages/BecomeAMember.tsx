@@ -5,6 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
+import {
+  getMembershipFee,
+  initialMembershipForm,
+  MembershipFormData,
+  MembershipPaymentSettings,
+} from "@/lib/membershipApplication";
+import {
+  submitMembershipApplication,
+  submitMembershipReceipt,
+} from "@/lib/submitMembershipApplication";
 
 const benefits = [
   { icon: GraduationCap, title: "Mentorship and coaching classes", description: "Learn through guided mentorship and coaching sessions." },
@@ -20,26 +30,17 @@ const activities = [
   ["Community Outreach and Empowerment Programme", "NWI outreach and empowerment work that members may be invited to support."],
   ["Organisational Content Creation", "Collaborative content work that supports NWI communication and visibility."],
 ];
-const policyVersion = "2026-11-21";
-const initial = {
-  first_name:"", last_name:"", date_of_birth:"", phone:"", email:"", occupation:"",
-  business_name:"", business_category:"", residential_address:"", local_government:"",
-  town_city:"", state:"", country:"Nigeria", membership_type:"new" as "new"|"renewal",
-  membership_year:String(new Date().getFullYear()), terms_accepted:false,
-  conduct_accepted:false, privacy_accepted:false,
-};
 const money = (amount:number) => new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:0}).format(amount);
 
-type PaymentSettings = { bank_name:string; account_name:string; account_number:string; payment_instructions:string };
-const emptyPaymentSettings:PaymentSettings = {bank_name:"",account_name:"",account_number:"",payment_instructions:""};
+const emptyPaymentSettings:MembershipPaymentSettings = {bank_name:"",account_name:"",account_number:"",payment_instructions:""};
 
 export default function BecomeAMember() {
   const { toast } = useToast();
   const [step,setStep] = useState(1);
-  const [form,setForm] = useState(initial);
+  const [form,setForm] = useState<MembershipFormData>(initialMembershipForm);
   const [submitting,setSubmitting] = useState(false);
   const [submitted,setSubmitted] = useState(false);
-  const [paymentSettings,setPaymentSettings] = useState<PaymentSettings>(emptyPaymentSettings);
+  const [paymentSettings,setPaymentSettings] = useState<MembershipPaymentSettings>(emptyPaymentSettings);
   const [applicationId,setApplicationId] = useState("");
   const [uploadToken,setUploadToken] = useState("");
   const [receiptFile,setReceiptFile] = useState<File|null>(null);
@@ -55,7 +56,7 @@ export default function BecomeAMember() {
       .then(({data}) => { if(active && data) setPaymentSettings(data as PaymentSettings); });
     return () => { active = false; };
   }, []);
-  const fee = form.membership_type === "new" ? 40000 : 30000;
+  const fee = getMembershipFee(form.membership_type);
   const year = Number(form.membership_year);
   const expiry = useMemo(() => new Date(year,11,31).toLocaleDateString("en-NG",{day:"numeric",month:"long",year:"numeric"}),[year]);
   const today = new Date().toISOString().slice(0,10);
@@ -80,49 +81,28 @@ export default function BecomeAMember() {
     if (!form.terms_accepted || !form.conduct_accepted || !form.privacy_accepted) {
       toast({title:"Please accept all membership acknowledgements",variant:"destructive"}); return;
     }
-    if (!paymentSettings.bank_name.trim() || !paymentSettings.account_name.trim() || !/^[0-9]{10}$/.test(paymentSettings.account_number.trim())) {
-      toast({title:"Membership payment details are not ready",description:"Please contact Northern Women Initiative for assistance.",variant:"destructive"}); return;
-    }
-    if (!receiptFile) { toast({title:"Payment receipt required",description:"Complete your bank transfer and attach the receipt before submitting.",variant:"destructive"}); return; }
-    if (!["image/jpeg","image/png","application/pdf"].includes(receiptFile.type) || receiptFile.size > 5*1024*1024) {
-      toast({title:"Invalid receipt file",description:"Upload a JPG, PNG or PDF file no larger than 5MB.",variant:"destructive"}); return;
-    }
     setSubmitting(true);
-    const newApplicationId=crypto.randomUUID(), newUploadToken=crypto.randomUUID();
-    const {error}=await supabase.from("membership_applications").insert({...form,id:newApplicationId,receipt_upload_token:newUploadToken,membership_year:year,fee,expiry_date:`${year}-12-31`,accepted_at:new Date().toISOString(),policy_version:policyVersion});
-    if(error){setSubmitting(false);toast({title:error.code==="23505"?"Application already exists":"Unable to submit application",description:error.code==="23505"?"An application for this email and membership year already exists. Please contact NWI for help.":error.message,variant:"destructive"});return;}
-    setApplicationId(newApplicationId); setUploadToken(newUploadToken);
-    const extension=receiptFile.name.split(".").pop()?.toLowerCase()||"file";
-    const receiptPath=`${newApplicationId}/${newUploadToken}/${crypto.randomUUID()}.${extension}`;
-    const {error:uploadError}=await supabase.storage.from("membership-payment-receipts").upload(receiptPath,receiptFile,{contentType:receiptFile.type,upsert:false});
-    if(uploadError){setSubmitting(false);setSubmitted(true);toast({title:"Application saved; receipt upload needs retry",description:"Your application is saved. Please upload the receipt again on the confirmation screen.",variant:"destructive"});return;}
-    const {error:receiptError}=await supabase.rpc("submit_membership_payment_receipt",{p_application_id:newApplicationId,p_token:newUploadToken,p_receipt_path:receiptPath,p_payment_reference:paymentReference.trim()||null});
-    if(receiptError){setSubmitting(false);setSubmitted(true);toast({title:"Application saved; receipt submission needs attention",description:receiptError.message,variant:"destructive"});return;}
-    const {error:notificationError}=await supabase.functions.invoke("send-registration-email",{body:{flow:"membership",wasUpdate:false,submission:{
-      first_name:form.first_name,last_name:form.last_name,email:form.email,phone:form.phone,membership_type:form.membership_type,membership_year:year,fee,expiry_date:`${year}-12-31`,payment_status:"pending_verification",membership_status:"pending",
-      bank_name:paymentSettings.bank_name,account_name:paymentSettings.account_name,account_number:paymentSettings.account_number,payment_instructions:paymentSettings.payment_instructions,payment_reference:paymentReference.trim(),
-    }}});
-    setSubmitting(false);setReceiptSubmitted(true);setSubmitted(true);
-    if(notificationError) toast({title:"Application submitted; email notification failed",description:"Your application and receipt are saved. NWI can still review them.",variant:"destructive"});
+    const result=await submitMembershipApplication({formData:form,receiptFile,paymentReference,paymentSettings});
+    setSubmitting(false);
+    if(!result.applicationSaved){
+      toast({title:result.error?.message.includes("receipt")?"Payment receipt required":"Unable to submit application",description:result.error?.message,variant:"destructive"});
+      return;
+    }
+    setApplicationId(result.applicationId||""); setUploadToken(result.uploadToken||"");
+    setSubmitted(true);setReceiptSubmitted(result.receiptSubmitted);
+    if(result.error){toast({title:"Application saved; receipt upload needs attention",description:result.error.message,variant:"destructive"});return;}
+    if(result.notificationError) toast({title:"Application submitted; email notification failed",description:"Your application and receipt are saved. NWI can still review them.",variant:"destructive"});
     else toast({title:"Membership application submitted",description:"Your application and payment receipt have been received. Check your email for confirmation."});
   };
 
   const uploadReceipt = async () => {
-    if (!receiptFile || !applicationId || !uploadToken) { toast({title:"Choose your payment receipt first",variant:"destructive"}); return; }
-    if (!["image/jpeg","image/png","application/pdf"].includes(receiptFile.type) || receiptFile.size > 5*1024*1024) {
-      toast({title:"Invalid receipt file",description:"Upload a JPG, PNG or PDF file no larger than 5MB.",variant:"destructive"}); return;
-    }
+    if (!applicationId || !uploadToken) { toast({title:"Application details are missing",description:"Please contact Northern Women Initiative for help.",variant:"destructive"}); return; }
     setUploadingReceipt(true);
-    const extension = receiptFile.name.split(".").pop()?.toLowerCase() || "file";
-    const receiptPath = `${applicationId}/${uploadToken}/${crypto.randomUUID()}.${extension}`;
-    const {error:uploadError} = await supabase.storage.from("membership-payment-receipts").upload(receiptPath,receiptFile,{contentType:receiptFile.type,upsert:false});
-    if (uploadError) { setUploadingReceipt(false); toast({title:"Receipt upload failed",description:uploadError.message,variant:"destructive"}); return; }
-    const {error:submitError} = await supabase.rpc("submit_membership_payment_receipt",{p_application_id:applicationId,p_token:uploadToken,p_receipt_path:receiptPath,p_payment_reference:paymentReference.trim() || null});
+    const result=await submitMembershipReceipt({applicationId,uploadToken,receiptFile,formData:form,paymentReference});
     setUploadingReceipt(false);
-    if (submitError) { toast({title:"Unable to submit payment receipt",description:submitError.message,variant:"destructive"}); return; }
-    const {error:notificationError} = await supabase.functions.invoke("send-registration-email",{body:{flow:"membership",wasUpdate:true,submission:{first_name:form.first_name,last_name:form.last_name,email:form.email,phone:form.phone,membership_type:form.membership_type,membership_year:year,fee,payment_status:"pending_verification",membership_status:"pending"}}});
+    if (result.error) { toast({title:"Unable to submit payment receipt",description:result.error.message,variant:"destructive"}); return; }
     setReceiptSubmitted(true);
-    if(notificationError) toast({title:"Receipt submitted; email notification failed",description:"NWI can still review your payment receipt.",variant:"destructive"});
+    if(result.notificationError) toast({title:"Receipt submitted; email notification failed",description:"NWI can still review your payment receipt.",variant:"destructive"});
     else toast({title:"Payment receipt submitted",description:"NWI will verify your transfer and update your membership."});
   };
   return <Layout>
