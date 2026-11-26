@@ -192,7 +192,7 @@ export async function buildMembershipDocumentPdf(member: ApprovedMembershipDetai
     color: colors.ink,
   });
   cursorY -= 20;
-  page.drawText("Mrs Maryam Mohammed Nasir", {
+  page.drawText("Hajiya Maryam Mohammed Nasir", {
     x: margin,
     y: cursorY,
     size: 10.5,

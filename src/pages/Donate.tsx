@@ -11,7 +11,6 @@ type DonationBankDetails = {
   bank_name: string;
   account_name: string;
   account_number: string;
-  payment_instructions: string;
 };
 
 const Donate = () => {
@@ -32,7 +31,7 @@ const Donate = () => {
     const loadBankDetails = async () => {
       const { data, error } = await supabase
         .from("membership_payment_settings")
-        .select("bank_name,account_name,account_number,payment_instructions")
+        .select("bank_name,account_name,account_number")
         .eq("id", true)
         .maybeSingle();
 
@@ -194,11 +193,6 @@ const Donate = () => {
                         </Button>
                       </div>
                     </div>
-                    {bankDetails.payment_instructions.trim() && (
-                      <p className="text-sm leading-relaxed text-muted-foreground">
-                        {bankDetails.payment_instructions}
-                      </p>
-                    )}
                   </>
                 )}
               </div>

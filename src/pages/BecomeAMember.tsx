@@ -31,6 +31,15 @@ const activities = [
   ["Community Outreach and Empowerment Programme", "NWI outreach and empowerment work that members may be invited to support."],
   ["Organisational Content Creation", "Collaborative content work that supports NWI communication and visibility."],
 ];
+const cardEntranceOffset = (index: number) => {
+  const offsets = [
+    { x: -42, y: 0 },
+    { x: 0, y: -36 },
+    { x: 42, y: 0 },
+    { x: 0, y: 36 },
+  ];
+  return offsets[index % offsets.length];
+};
 const money = (amount:number) => new Intl.NumberFormat("en-NG",{style:"currency",currency:"NGN",maximumFractionDigits:0}).format(amount);
 
 const emptyPaymentSettings:MembershipPaymentSettings = {bank_name:"",account_name:"",account_number:"",payment_instructions:""};
@@ -111,9 +120,9 @@ export default function BecomeAMember() {
     <section className="bg-gradient-hero py-20">
       <div className="container-section">
         <div className="max-w-3xl">
-          <span className="text-secondary text-sm font-medium uppercase tracking-wider">Become a Member</span>
-          <h1 className="mt-3 mb-6 font-serif text-4xl font-bold text-primary-foreground md:text-5xl">Grow, Connect, Learn and Build Together</h1>
-          <p className="text-lg text-primary-foreground/90">Join the Northern Women Initiative membership community and access mentorship, business development, networking, collaboration and opportunities for growth.</p>
+          <motion.span className="text-secondary text-sm font-medium uppercase tracking-wider" initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }} animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.75, ease: "easeOut" }}>Become a Member</motion.span>
+          <motion.h1 className="mt-3 mb-6 font-serif text-4xl font-bold text-primary-foreground md:text-5xl" initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }} animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.85, delay: prefersReducedMotion ? 0 : 0.12, ease: "easeOut" }}>Grow, Connect, Learn and Build Together</motion.h1>
+          <motion.p className="text-lg text-primary-foreground/90" initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }} animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.85, delay: prefersReducedMotion ? 0 : 0.24, ease: "easeOut" }}>Join the Northern Women Initiative membership community and access mentorship, business development, networking, collaboration and opportunities for growth.</motion.p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button variant="gold" size="lg" asChild><a href="#membership-benefits">Explore Membership</a></Button>
             <Button variant="heroOutline" size="lg" asChild><a href="#membership-application">Register as a Member</a></Button>
@@ -122,24 +131,24 @@ export default function BecomeAMember() {
       </div>
     </section>
     <section id="membership-benefits" className="section-padding bg-background"><div className="container-section">
-      <div className="mx-auto max-w-3xl text-center"><h2 className="text-3xl font-serif font-bold md:text-4xl">What membership includes</h2><p className="mt-4 text-muted-foreground">The membership package includes the following programme benefits.</p></div>
+      <motion.div className="mx-auto max-w-3xl text-center" initial={prefersReducedMotion ? false : { opacity: 0, y: 20 }} whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.45 }} transition={{ duration: 0.85, ease: "easeOut" }}><h2 className="text-3xl font-serif font-bold md:text-4xl">What membership includes</h2><p className="mt-4 text-muted-foreground">The membership package includes the following programme benefits.</p></motion.div>
       <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {benefits.map(({icon:Icon,title,description},index)=><motion.article
           key={title}
           className="rounded-2xl border border-border bg-card p-6 shadow-card"
-          initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }}
-          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, ...cardEntranceOffset(index) }}
+          whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.72, delay: prefersReducedMotion ? 0 : (index % 3) * 0.1, ease: "easeOut" }}
+          transition={{ duration: 0.9, delay: prefersReducedMotion ? 0 : (index % 3) * 0.11, ease: "easeOut" }}
           whileHover={prefersReducedMotion ? undefined : { y: -5, transition: { duration: 0.35, ease: "easeOut" } }}
         ><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Icon size={22}/></div><h3 className="font-serif text-lg font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p></motion.article>)}
       </div>
     </div></section>
-    <section className="section-padding bg-muted"><div className="container-section"><h2 className="text-center text-3xl font-serif font-bold">Annual membership fees</h2><div className="mx-auto mt-8 grid max-w-3xl gap-5 sm:grid-cols-2">
-      <motion.div className="rounded-2xl border border-border bg-card p-7 text-center shadow-card" initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }} whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.72, ease: "easeOut" }} whileHover={prefersReducedMotion ? undefined : { y: -5, transition: { duration: 0.35, ease: "easeOut" } }}><p className="text-sm font-semibold uppercase text-muted-foreground">New member</p><p className="mt-3 text-4xl font-bold text-primary">{money(40000)}</p><p className="mt-2 text-sm text-muted-foreground">One-year membership</p></motion.div>
-      <motion.div className="rounded-2xl border border-border bg-card p-7 text-center shadow-card" initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }} whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.72, delay: prefersReducedMotion ? 0 : 0.12, ease: "easeOut" }} whileHover={prefersReducedMotion ? undefined : { y: -5, transition: { duration: 0.35, ease: "easeOut" } }}><p className="text-sm font-semibold uppercase text-muted-foreground">Existing member renewal</p><p className="mt-3 text-4xl font-bold text-primary">{money(30000)}</p><p className="mt-2 text-sm text-muted-foreground">Renewal for a membership year</p></motion.div>
+    <section className="section-padding bg-muted"><div className="container-section"><motion.h2 className="text-center text-3xl font-serif font-bold" initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }} whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.45 }} transition={{ duration: 0.85, ease: "easeOut" }}>Annual membership fees</motion.h2><div className="mx-auto mt-8 grid max-w-3xl gap-5 sm:grid-cols-2">
+      <motion.div className="rounded-2xl border border-border bg-card p-7 text-center shadow-card" initial={prefersReducedMotion ? false : { opacity: 0, ...cardEntranceOffset(0) }} whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.9, ease: "easeOut" }} whileHover={prefersReducedMotion ? undefined : { y: -5, transition: { duration: 0.35, ease: "easeOut" } }}><p className="text-sm font-semibold uppercase text-muted-foreground">New member</p><p className="mt-3 text-4xl font-bold text-primary">{money(40000)}</p><p className="mt-2 text-sm text-muted-foreground">One-year membership</p></motion.div>
+      <motion.div className="rounded-2xl border border-border bg-card p-7 text-center shadow-card" initial={prefersReducedMotion ? false : { opacity: 0, ...cardEntranceOffset(2) }} whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.9, delay: prefersReducedMotion ? 0 : 0.14, ease: "easeOut" }} whileHover={prefersReducedMotion ? undefined : { y: -5, transition: { duration: 0.35, ease: "easeOut" } }}><p className="text-sm font-semibold uppercase text-muted-foreground">Existing member renewal</p><p className="mt-3 text-4xl font-bold text-primary">{money(30000)}</p><p className="mt-2 text-sm text-muted-foreground">Renewal for a membership year</p></motion.div>
     </div><p className="mx-auto mt-6 max-w-3xl text-center text-sm text-muted-foreground">Membership operates from January to December and expires on 31 December of the selected year, even where registration occurs later.</p></div></section>
-    <section className="section-padding bg-background"><div className="container-section"><h2 className="text-center text-3xl font-serif font-bold">NWI organisational activities</h2><p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">These are organisational activities and possible participation opportunities, not guaranteed membership entitlements.</p><div className="mt-8 grid gap-5 md:grid-cols-3">{activities.map(([title,description],index)=><motion.article key={title} className="rounded-2xl border border-border bg-card p-6 shadow-card" initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }} whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.72, delay: prefersReducedMotion ? 0 : (index % 3) * 0.1, ease: "easeOut" }} whileHover={prefersReducedMotion ? undefined : { y: -5, transition: { duration: 0.35, ease: "easeOut" } }}><h3 className="font-serif text-xl font-semibold">{title}</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p></motion.article>)}</div></div></section>
+    <section className="section-padding bg-background"><div className="container-section"><motion.div className="text-center" initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }} whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.45 }} transition={{ duration: 0.85, ease: "easeOut" }}><h2 className="text-center text-3xl font-serif font-bold">NWI organisational activities</h2><p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">These are organisational activities and possible participation opportunities, not guaranteed membership entitlements.</p></motion.div><div className="mt-8 grid gap-5 md:grid-cols-3">{activities.map(([title,description],index)=><motion.article key={title} className="rounded-2xl border border-border bg-card p-6 shadow-card" initial={prefersReducedMotion ? false : { opacity: 0, ...cardEntranceOffset(index) }} whileInView={prefersReducedMotion ? undefined : { opacity: 1, x: 0, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.9, delay: prefersReducedMotion ? 0 : (index % 3) * 0.12, ease: "easeOut" }} whileHover={prefersReducedMotion ? undefined : { y: -5, transition: { duration: 0.35, ease: "easeOut" } }}><h3 className="font-serif text-xl font-semibold">{title}</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p></motion.article>)}</div></div></section>
     <section id="membership-application" className="section-padding scroll-mt-24 bg-muted"><div className="container-section max-w-4xl">
       <div className="mb-8 text-center"><h2 className="text-3xl font-serif font-bold">Membership application</h2><p className="mt-3 text-muted-foreground">Complete the four steps below. Your progress is kept while navigating between steps.</p></div>
       {submitted ? <div className="rounded-2xl border border-border bg-card p-6 shadow-card sm:p-8">
