@@ -176,10 +176,31 @@
 
   .button-shine,
   button {
+    --button-shine-color: hsl(var(--primary));
     position: relative;
     isolation: isolate;
     overflow: hidden;
     transition: filter 300ms ease, box-shadow 300ms ease;
+  }
+
+  .button-shine.bg-secondary,
+  button.bg-secondary {
+    --button-shine-color: hsl(var(--secondary));
+  }
+
+  .button-shine.bg-destructive,
+  button.bg-destructive {
+    --button-shine-color: hsl(var(--destructive));
+  }
+
+  .button-shine.bg-accent,
+  button.bg-accent {
+    --button-shine-color: hsl(var(--accent));
+  }
+
+  .button-shine.bg-transparent,
+  button.bg-transparent {
+    --button-shine-color: hsl(var(--secondary));
   }
 
   .button-shine::after,
@@ -191,14 +212,20 @@
     content: "";
     pointer-events: none;
     transform: skewX(-22deg);
-    background: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.72), transparent);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--button-shine-color) 38%, white 62%),
+      transparent
+    );
+    opacity: 0.68;
     animation: membership-button-shine 6.2s ease-in-out infinite;
   }
 
   .button-shine:hover:not(:disabled):not([aria-disabled="true"]),
   button:hover:not(:disabled) {
-    filter: brightness(1.2);
-    box-shadow: 0 0 22px hsl(var(--secondary) / 0.42);
+    filter: brightness(1.12);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--button-shine-color) 42%, transparent);
   }
 }
 
