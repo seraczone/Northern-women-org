@@ -56,7 +56,7 @@ const wrapText = (
 export async function buildMembershipDocumentPdf(member: ApprovedMembershipDetails) {
   const pdf = await PDFDocument.create();
   pdf.setTitle(`NWI Membership Confirmation - ${member.membership_id}`);
-  pdf.setAuthor("Northern Women Initiative");
+  pdf.setAuthor("Northern Women Initiative For Empowerment, Growth and Development");
   pdf.setSubject(`Active membership for ${member.membership_year}`);
 
   const page = pdf.addPage();
@@ -126,7 +126,7 @@ export async function buildMembershipDocumentPdf(member: ApprovedMembershipDetai
   });
   cursorY -= 30;
   drawParagraph(
-    "Northern Women Initiative is pleased to confirm that your membership payment has been verified and your membership has been approved. We welcome you as an active member of our community.",
+    "Northern Women Initiative For Empowerment, Growth and Development is pleased to confirm that your membership payment has been verified and your membership has been approved. We welcome you as an active member of our community.",
   );
   drawParagraph(
     "Your membership supports our work to advance the empowerment, growth, and development of women and communities. We look forward to your participation in our programmes, activities, and member engagements.",
@@ -140,7 +140,7 @@ export async function buildMembershipDocumentPdf(member: ApprovedMembershipDetai
     font: bold,
     color: colors.burgundy,
   });
-  cursorY -= 23;
+  cursorY -= 45;
   const rows = [
     ["Member name", fullName],
     ["Permanent Membership ID", member.membership_id],
@@ -192,7 +192,7 @@ export async function buildMembershipDocumentPdf(member: ApprovedMembershipDetai
     color: colors.ink,
   });
   cursorY -= 20;
-  page.drawText("Membership Secretariat", {
+  page.drawText("Mrs Maryam Mohammed Nasir", {
     x: margin,
     y: cursorY,
     size: 10.5,
@@ -200,7 +200,7 @@ export async function buildMembershipDocumentPdf(member: ApprovedMembershipDetai
     color: colors.burgundy,
   });
   cursorY -= 16;
-  page.drawText("Northern Women Initiative", {
+  page.drawText("Northern Women Initiative For Empowerment, Growth and Development", {
     x: margin,
     y: cursorY,
     size: 10,
@@ -209,7 +209,7 @@ export async function buildMembershipDocumentPdf(member: ApprovedMembershipDetai
   });
 
   page.drawRectangle({ x: margin, y: 48, width: contentWidth, height: 0.8, color: colors.line });
-  page.drawText("Northern Women Initiative | For Empowerment, Growth and Development", {
+  page.drawText("Northern Women Initiative For Empowerment, Growth and Development", {
     x: margin,
     y: 31,
     size: 8,

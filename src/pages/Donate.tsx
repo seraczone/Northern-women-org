@@ -78,18 +78,20 @@ const Donate = () => {
 
   return (
     <Layout>
-      <section className="bg-gradient-hero py-16 md:py-20">
-        <div className="container-section max-w-5xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-secondary">
-            Give to Northern Women Initiative
-          </p>
-          <h1 className="mt-3 max-w-3xl text-4xl font-serif font-bold text-primary-foreground md:text-5xl">
-            Your support helps women and communities rise.
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-primary-foreground/90">
-            Donations support our work to expand opportunities for women, educate girls,
-            and strengthen communities across Northern Nigeria.
-          </p>
+      <section className="bg-gradient-hero py-20">
+        <div className="container-section">
+          <div className="max-w-3xl">
+            <span className="text-secondary text-sm font-medium uppercase tracking-wider">
+              Donate
+            </span>
+            <h1 className="mt-3 mb-6 font-serif text-4xl font-bold text-primary-foreground md:text-5xl">
+              Your support helps women and communities rise.
+            </h1>
+            <p className="text-lg text-primary-foreground/90">
+              Donations support our work to expand opportunities for women, educate girls,
+              and strengthen communities across Northern Nigeria.
+            </p>
+          </div>
         </div>
       </section>
 

@@ -14,6 +14,7 @@ type Membership = {
   membership_id: string | null;
   first_name: string;
   last_name: string;
+  date_of_birth: string;
   email: string;
   phone: string;
   occupation: string;
@@ -143,14 +144,17 @@ export default function AdminMemberships() {
           `${row.first_name} ${row.last_name}`,
           row.email,
           row.phone,
+          row.date_of_birth,
           row.membership_id ?? "",
           row.payment_reference ?? "",
           row.occupation,
           row.business_name ?? "",
           row.business_category ?? "",
+          row.residential_address,
           row.local_government,
           row.town_city,
           row.state,
+          row.country,
         ].join(" ").toLowerCase();
 
         return (
@@ -270,20 +274,29 @@ export default function AdminMemberships() {
 
   const exportCsv = () => {
     const headers = [
-      "Membership ID", "Name", "Email", "Phone", "Occupation", "Business", "Location",
-      "Type", "Year", "Fee", "Payment Status", "Membership Status", "Payment Reference",
-      "Receipt Uploaded", "Expiry", "Admin Notes",
+      "Membership ID", "First Name", "Last Name", "Date of Birth", "Email", "Phone",
+      "Occupation", "Business Name", "Business Category", "Residential Address",
+      "Local Government", "Town/City", "State", "Country", "Membership Type", "Year",
+      "Fee", "Payment Status", "Membership Status", "Payment Reference", "Receipt Uploaded",
+      "Expiry", "Admin Notes",
     ];
     const csv = [
       headers,
       ...filtered.map((row) => [
         row.membership_id || "",
-        `${row.first_name} ${row.last_name}`,
+        row.first_name,
+        row.last_name,
+        row.date_of_birth,
         row.email,
         row.phone,
         row.occupation,
-        row.business_name || row.business_category || "",
-        [row.town_city, row.local_government, row.state, row.country].filter(Boolean).join(", "),
+        row.business_name || "",
+        row.business_category || "",
+        row.residential_address,
+        row.local_government,
+        row.town_city,
+        row.state,
+        row.country,
         row.membership_type,
         row.membership_year,
         row.fee,
@@ -409,48 +422,46 @@ export default function AdminMemberships() {
             ) : filtered.length === 0 ? (
               <p className="text-muted-foreground">No membership applications found for the current filter.</p>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse text-sm">
+              <div className="overflow-x-auto rounded-lg border">
+                <table className="min-w-[2600px] border-collapse text-sm">
                   <thead>
                     <tr className="bg-muted text-left">
-                      <th className="border p-3">S/N</th>
-                      <th className="border p-3">Applicant</th>
-                      <th className="border p-3">Profile</th>
-                      <th className="border p-3">Membership</th>
-                      <th className="border p-3">Payment</th>
-                      <th className="border p-3">Receipt</th>
-                      <th className="border p-3">Member ID</th>
-                      <th className="border p-3">Date</th>
-                      <th className="border p-3">Actions</th>
+                      {[
+                        "S/N", "First name", "Last name", "Date of birth", "Email", "Phone",
+                        "Occupation", "Business name", "Business category", "Residential address",
+                        "Local government", "Town/City", "State", "Country", "Membership type",
+                        "Year", "Annual fee", "Payment status", "Payment decision", "Payment reference",
+                        "Receipt", "Membership status", "Member ID", "Expiry date", "Submitted", "Actions",
+                      ].map((heading) => <th key={heading} className="whitespace-nowrap border p-3">{heading}</th>)}
                     </tr>
                   </thead>
                   <tbody>
                     {filtered.map((row, index) => (
                       <tr key={row.id} className="align-top hover:bg-muted/50">
                         <td className="border p-3 font-medium text-muted-foreground">{index + 1}</td>
-                        <td className="border p-3">
-                          <p className="font-semibold">{row.first_name} {row.last_name}</p>
-                          <p className="text-muted-foreground">{row.email}</p>
-                          <p className="text-muted-foreground">{row.phone}</p>
-                        </td>
-                        <td className="border p-3">
-                          <p className="font-medium">{row.occupation || "-"}</p>
-                          <p className="text-muted-foreground">{row.business_name || row.business_category || "-"}</p>
-                          <p className="max-w-52 text-muted-foreground">{[row.town_city, row.local_government, row.state].filter(Boolean).join(", ") || "-"}</p>
-                        </td>
-                        <td className="border p-3">
-                          <p className="font-medium">{formatMembershipType(row.membership_type)}</p>
-                          <p className="text-muted-foreground">Year {row.membership_year}</p>
-                          <p className="font-medium">{money(row.fee)}</p>
-                          <p className="text-muted-foreground">Expires {formatDate(row.expiry_date)}</p>
-                        </td>
+                        <td className="border p-3 font-medium">{row.first_name || "-"}</td>
+                        <td className="border p-3 font-medium">{row.last_name || "-"}</td>
+                        <td className="whitespace-nowrap border p-3">{formatDate(row.date_of_birth)}</td>
+                        <td className="border p-3">{row.email || "-"}</td>
+                        <td className="whitespace-nowrap border p-3">{row.phone || "-"}</td>
+                        <td className="border p-3">{row.occupation || "-"}</td>
+                        <td className="border p-3">{row.business_name || "-"}</td>
+                        <td className="border p-3">{row.business_category || "-"}</td>
+                        <td className="min-w-64 border p-3 whitespace-normal">{row.residential_address || "-"}</td>
+                        <td className="border p-3">{row.local_government || "-"}</td>
+                        <td className="border p-3">{row.town_city || "-"}</td>
+                        <td className="border p-3">{row.state || "-"}</td>
+                        <td className="border p-3">{row.country || "-"}</td>
+                        <td className="border p-3">{formatMembershipType(row.membership_type)}</td>
+                        <td className="border p-3">{row.membership_year}</td>
+                        <td className="whitespace-nowrap border p-3">{money(row.fee)}</td>
                         <td className="border p-3">
                           <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold capitalize ${paymentStatusStyles[row.payment_status]}`}>
                             {row.payment_status.replaceAll("_", " ")}
                           </span>
-                          <p className="mt-2 break-all text-muted-foreground">{row.payment_reference || "No reference"}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">{row.payment_decision ? `Decision: ${row.payment_decision}` : "Awaiting decision"}</p>
                         </td>
+                        <td className="border p-3 capitalize">{row.payment_decision || "Awaiting decision"}</td>
+                        <td className="max-w-52 break-all border p-3">{row.payment_reference || "-"}</td>
                         <td className="border p-3">
                           <Button type="button" variant="outline" size="sm" disabled={!row.receipt_path || openingReceiptId === row.id} onClick={() => void openReceipt(row)}>
                             <ExternalLink className="mr-2 h-4 w-4" />
@@ -462,8 +473,9 @@ export default function AdminMemberships() {
                           <span className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold capitalize ${row.membership_status === "active" ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-slate-50 text-slate-700"}`}>
                             {row.membership_status}
                           </span>
-                          {row.membership_id && <p className="mt-2 whitespace-nowrap font-mono font-bold text-primary">{row.membership_id}</p>}
                         </td>
+                        <td className="whitespace-nowrap border p-3 font-mono font-bold text-primary">{row.membership_id || "Not assigned"}</td>
+                        <td className="whitespace-nowrap border p-3">{formatDate(row.expiry_date)}</td>
                         <td className="border p-3 whitespace-nowrap text-muted-foreground">{formatDateTime(row.created_at)}</td>
                         <td className="border p-3">
                           <div className="flex min-w-44 flex-col gap-2">

@@ -14,9 +14,11 @@ const corsHeaders = {
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+const ORGANIZATION_FULL_NAME = "Northern Women Initiative For Empowerment, Growth and Development";
+const configuredFromEmail = Deno.env.get("RESEND_FROM_EMAIL") ?? "onboarding@resend.dev";
+const senderAddress = configuredFromEmail.match(/<([^<>]+)>/)?.[1]?.trim() ?? configuredFromEmail.trim();
 const RESEND_FROM_EMAIL =
-  Deno.env.get("RESEND_FROM_EMAIL") ??
-  "Northern Women Initiative <onboarding@resend.dev>";
+  `${ORGANIZATION_FULL_NAME} <${senderAddress}>`;
 const CONTACT_ADMIN_EMAIL = Deno.env.get("CONTACT_ADMIN_EMAIL");
 const SUPPORT_EMAIL =
   Deno.env.get("SUPPORT_EMAIL") ?? CONTACT_ADMIN_EMAIL ?? "support@northernwomen.org";
@@ -76,8 +78,8 @@ const flowContent: Record<Exclude<Flow, "event">, FlowContent> = {
   membership: {
     adminLabel: "Annual Membership Application",
     confirmationTitle: "NWI Membership Application",
-    submittedText: "Your membership application has been received. Your application is not an approval or payment confirmation. Please follow the official payment instructions and wait for verification by Northern Women Initiative.",
-    updatedText: "Your membership application details have been updated. Your payment and membership status remain subject to verification by Northern Women Initiative.",
+    submittedText: `Your membership application has been received. Your application is not an approval or payment confirmation. Please follow the official payment instructions and wait for verification by ${ORGANIZATION_FULL_NAME}.`,
+    updatedText: `Your membership application details have been updated. Your payment and membership status remain subject to verification by ${ORGANIZATION_FULL_NAME}.`,
   },
   volunteer: {
     adminLabel: "Volunteer Application",
@@ -109,8 +111,8 @@ const getFlowContent = (
     if (paymentStatus === "pending_verification") {
       return {
         ...flowContent.membership,
-        submittedText: `Your membership application and payment receipt have been received. We have recorded your payment of ₦${String(submission.fee ?? "")} for ${String(submission.membership_year ?? "")}. Your transfer is awaiting verification by Northern Women Initiative. Your membership will become active only after an administrator verifies the payment and approves your application.`,
-        updatedText: "We have received your payment receipt. Your transfer is awaiting verification by Northern Women Initiative. Your membership will only become active after the payment is confirmed by an administrator.",
+        submittedText: `Your membership application and payment receipt have been received. We have recorded your payment of ₦${String(submission.fee ?? "")} for ${String(submission.membership_year ?? "")}. Your transfer is awaiting verification by ${ORGANIZATION_FULL_NAME}. Your membership will become active only after an administrator verifies the payment and approves your application.`,
+        updatedText: `We have received your payment receipt. Your transfer is awaiting verification by ${ORGANIZATION_FULL_NAME}. Your membership will only become active after the payment is confirmed by an administrator.`,
       };
     }
 
@@ -121,7 +123,7 @@ const getFlowContent = (
     if (bankName && accountName && accountNumber) {
       return {
         ...flowContent.membership,
-        submittedText: `Your membership application and payment receipt have been received. We have recorded your payment of ₦${fee} for ${String(submission.membership_year ?? "")}. Your transfer is now awaiting verification by Northern Women Initiative. Your membership will become active only after an administrator verifies the payment and approves your application.`,
+        submittedText: `Your membership application and payment receipt have been received. We have recorded your payment of ₦${fee} for ${String(submission.membership_year ?? "")}. Your transfer is now awaiting verification by ${ORGANIZATION_FULL_NAME}. Your membership will become active only after an administrator verifies the payment and approves your application.`,
       };
     }
   }
@@ -552,13 +554,13 @@ const buildMembershipUserEmailHtml = ({
   const heading = wasUpdate ? "Payment receipt received" : "Application received";
   const intro = wasUpdate
     ? "We have received your payment receipt. Our team will review the transfer and update you after verification."
-    : "Thank you for applying to join Northern Women Initiative. We have received your membership application and payment receipt.";
+    : `Thank you for applying to join ${ORGANIZATION_FULL_NAME}. We have received your membership application and payment receipt.`;
 
   return `
     <div style="margin:0;padding:28px 12px;background:#f5f1ed;font-family:Arial,Helvetica,sans-serif;color:#2d2027;">
       <div style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid #e7ddd5;border-radius:16px;overflow:hidden;">
         <div style="padding:28px 32px;background:#571633;color:#ffffff;">
-          <p style="margin:0 0 8px;color:#e5c47c;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Northern Women Initiative</p>
+          <p style="margin:0 0 8px;color:#e5c47c;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">${ORGANIZATION_FULL_NAME}</p>
           <h1 style="margin:0;font-size:25px;line-height:1.25;">${heading}</h1>
         </div>
         <div style="padding:30px 32px;line-height:1.65;">
@@ -577,7 +579,7 @@ const buildMembershipUserEmailHtml = ({
           <p style="margin:0;">Our team will review your receipt. Your membership becomes active only after an administrator verifies the payment and approves your application. Your permanent NWI Membership ID will be issued after approval.</p>
           <p style="margin:18px 0 0;">Please keep this email for your records. If you need help, reply to this email or contact us using the details below.</p>
           ${buildSupportBlock()}
-          <p style="margin:26px 0 0;">Warm regards,<br /><strong>Northern Women Initiative</strong><br />For Empowerment, Growth and Development</p>
+          <p style="margin:26px 0 0;">Warm regards,<br /><strong>${ORGANIZATION_FULL_NAME}</strong></p>
         </div>
         <div style="padding:14px 32px;background:#f8f4ef;color:#746970;font-size:11px;">This message confirms receipt of your application. It is not a membership approval or payment confirmation.</div>
       </div>
@@ -595,11 +597,17 @@ const buildMembershipAdminEmailHtml = ({
   const name = [submission.first_name, submission.last_name].map((value) => escapeHtml(String(value ?? ""))).filter(Boolean).join(" ");
   const paymentStatus = escapeHtml(String(submission.payment_status ?? "Pending"));
   const detailRows = [
+    ["Date of birth", submission.date_of_birth],
     ["Email", submission.email],
     ["Phone", submission.phone],
     ["Occupation", submission.occupation],
     ["Business name", submission.business_name],
-    ["Location", [submission.town_city, submission.local_government, submission.state, submission.country].filter(Boolean).join(", ")],
+    ["Business category", submission.business_category],
+    ["Residential address", submission.residential_address],
+    ["Local government", submission.local_government],
+    ["Town/City", submission.town_city],
+    ["State", submission.state],
+    ["Country", submission.country],
     ["Membership type", String(submission.membership_type ?? "") === "renewal" ? "Renewal" : "New membership"],
     ["Membership year", submission.membership_year],
     ["Annual fee", Number.isFinite(Number(submission.fee)) ? `NGN ${Number(submission.fee).toLocaleString("en-NG")}` : ""],
@@ -613,7 +621,8 @@ const buildMembershipAdminEmailHtml = ({
     <div style="margin:0;padding:24px 12px;background:#f5f1ed;font-family:Arial,Helvetica,sans-serif;color:#2d2027;">
       <div style="max-width:680px;margin:0 auto;background:#fff;border:1px solid #e7ddd5;border-radius:14px;overflow:hidden;">
         <div style="padding:24px 28px;background:#571633;color:#fff;">
-          <p style="margin:0 0 7px;color:#e5c47c;font-size:11px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;">Membership administration</p>
+          <p style="margin:0 0 7px;color:#e5c47c;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">${ORGANIZATION_FULL_NAME}</p>
+          <p style="margin:0 0 7px;color:#fff;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">Membership administration</p>
           <h1 style="margin:0;font-size:22px;">${wasUpdate ? "Payment receipt submitted" : "New membership application"}</h1>
         </div>
         <div style="padding:24px 28px;line-height:1.5;">
@@ -645,12 +654,12 @@ const buildMembershipDecisionEmailHtml = ({
       <div style="margin:0;padding:28px 12px;background:#f5f1ed;font-family:Arial,Helvetica,sans-serif;color:#2d2027;">
         <div style="max-width:640px;margin:0 auto;background:#fff;border:1px solid #e7ddd5;border-radius:16px;overflow:hidden;">
           <div style="padding:28px 32px;background:#571633;color:#fff;">
-            <p style="margin:0 0 8px;color:#e5c47c;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Northern Women Initiative</p>
+            <p style="margin:0 0 8px;color:#e5c47c;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">${ORGANIZATION_FULL_NAME}</p>
             <h1 style="margin:0;font-size:25px;line-height:1.25;">Your membership is approved</h1>
           </div>
           <div style="padding:30px 32px;line-height:1.65;">
             <p style="margin:0 0 14px;">Dear ${name},</p>
-            <p style="margin:0 0 18px;">Your payment has been verified and your membership application has been approved. Welcome to the Northern Women Initiative membership community.</p>
+            <p style="margin:0 0 18px;">Your payment has been verified and your membership application has been approved. Welcome to the ${ORGANIZATION_FULL_NAME} membership community.</p>
             <div style="margin:22px 0;padding:18px 20px;background:#faf7f1;border-left:4px solid #c59b52;border-radius:8px;">
               <p style="margin:0 0 12px;color:#571633;font-weight:700;">Your membership details</p>
               <p style="margin:6px 0;"><strong>Membership ID:</strong> ${membershipId}</p>
@@ -661,7 +670,7 @@ const buildMembershipDecisionEmailHtml = ({
             <h2 style="margin:24px 0 8px;color:#571633;font-size:17px;">Stay connected</h2>
             <p style="margin:0;">Please watch your email and official NWI channels for member activities, programme updates, and important notices.</p>
             ${buildSupportBlock()}
-            <p style="margin:26px 0 0;">Warm regards,<br /><strong>Northern Women Initiative</strong><br />For Empowerment, Growth and Development</p>
+            <p style="margin:26px 0 0;">Warm regards,<br /><strong>${ORGANIZATION_FULL_NAME}</strong></p>
           </div>
         </div>
       </div>
@@ -672,16 +681,16 @@ const buildMembershipDecisionEmailHtml = ({
     <div style="margin:0;padding:28px 12px;background:#f5f1ed;font-family:Arial,Helvetica,sans-serif;color:#2d2027;">
       <div style="max-width:640px;margin:0 auto;background:#fff;border:1px solid #e7ddd5;border-radius:16px;overflow:hidden;">
         <div style="padding:28px 32px;background:#571633;color:#fff;">
-          <p style="margin:0 0 8px;color:#e5c47c;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Northern Women Initiative</p>
+          <p style="margin:0 0 8px;color:#e5c47c;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;">${ORGANIZATION_FULL_NAME}</p>
           <h1 style="margin:0;font-size:25px;line-height:1.25;">Update on your membership application</h1>
         </div>
         <div style="padding:30px 32px;line-height:1.65;">
           <p style="margin:0 0 14px;">Dear ${name},</p>
           <p style="margin:0 0 18px;">After reviewing your payment receipt, we are unable to approve the payment at this time. Your membership has not been activated, and no new Membership ID has been issued.</p>
           ${declineReason ? `<div style="margin:20px 0;padding:16px 18px;background:#faf7f1;border-left:4px solid #c59b52;border-radius:8px;"><strong>Review note:</strong> ${declineReason}</div>` : ""}
-          <p style="margin:0;">Please contact Northern Women Initiative if you would like clarification or guidance on the next steps.</p>
+          <p style="margin:0;">Please contact ${ORGANIZATION_FULL_NAME} if you would like clarification or guidance on the next steps.</p>
           ${buildSupportBlock()}
-          <p style="margin:26px 0 0;">Warm regards,<br /><strong>Northern Women Initiative</strong><br />For Empowerment, Growth and Development</p>
+          <p style="margin:26px 0 0;">Warm regards,<br /><strong>${ORGANIZATION_FULL_NAME}</strong></p>
         </div>
       </div>
     </div>
@@ -759,7 +768,7 @@ const buildVolunteerUserEmailHtml = ({
 
   return `
     <p>${greeting}</p>
-    <p>Thank you for offering to serve with Northern Women Initiative. We are delighted to confirm that your volunteer application has been received successfully.</p>
+    <p>Thank you for offering to serve with ${ORGANIZATION_FULL_NAME}. We are delighted to confirm that your volunteer application has been received successfully.</p>
     <p>${escapeHtml(wasUpdate ? content.updatedText : content.submittedText)}</p>
     <h3 style="margin-top:24px;">Next Steps</h3>
     <ul style="padding-left:20px;">
@@ -771,7 +780,7 @@ const buildVolunteerUserEmailHtml = ({
     ${buildSupportBlock()}
     <p style="margin-top:24px;">Thank you for your willingness to contribute your time, compassion, and support toward empowering women and strengthening communities.</p>
     <p>Your willingness to serve helps advance the work of dignity, opportunity, and community transformation that defines our mission.</p>
-    <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
+    <p>Warm regards,<br />${ORGANIZATION_FULL_NAME} Team</p>
   `;
 };
 
@@ -829,7 +838,7 @@ const buildSummitUserEmailHtml = ({
     ${buildSupportBlock()}
     <p style="margin-top:24px;">We look forward to welcoming you to a meaningful gathering centered on empowerment, leadership, shared learning, and sustainable community development.</p>
     <p>The summit is part of our continued commitment to amplifying women’s voices and building stronger communities through collective action.</p>
-    <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
+    <p>Warm regards,<br />${ORGANIZATION_FULL_NAME} Team</p>
   `;
 };
 
@@ -887,7 +896,7 @@ const buildSummitUserEmailHtmlBranded = ({
     ${buildSupportBlock()}
     <p style="margin-top:24px;">We look forward to welcoming you to a meaningful gathering centered on empowerment, leadership, shared learning, and sustainable community development.</p>
     <p>The summit is part of our continued commitment to amplifying women's voices and building stronger communities through collective action.</p>
-    <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
+    <p>Warm regards,<br />${ORGANIZATION_FULL_NAME} Team</p>
   `;
 };
 
@@ -1015,8 +1024,8 @@ const buildEventUserEmailHtml = ({
         : ""
     }
     <p style="margin-top:24px;">We look forward to welcoming you and having you participate in this meaningful session dedicated to empowering women and strengthening community development.</p>
-    <p>Thank you for standing with Northern Women Initiative as we continue to create spaces for learning, leadership, and lasting impact.</p>
-    <p>Warm regards,<br />Northern Women Initiative for Empowerment, Growth and Development Team</p>
+    <p>Thank you for standing with ${ORGANIZATION_FULL_NAME} as we continue to create spaces for learning, leadership, and lasting impact.</p>
+    <p>Warm regards,<br />${ORGANIZATION_FULL_NAME} Team</p>
     ${
       wasUpdate
         ? `<p style="color:#666;">${escapeHtml(content.updatedText)}</p>`
@@ -1173,8 +1182,8 @@ serve(async (req) => {
 
       const name = escapeHtml([application.first_name, application.last_name].map((value) => String(value ?? "").trim()).filter(Boolean).join(" ") || "Member");
       const decisionSubject = approved
-        ? "Your Northern Women Initiative Membership Has Been Approved"
-        : "Update on Your Northern Women Initiative Membership Application";
+        ? `Your ${ORGANIZATION_FULL_NAME} Membership Has Been Approved`
+        : `Update on Your ${ORGANIZATION_FULL_NAME} Membership Application`;
       try {
         const membershipPdf = approved
           ? await buildMembershipDocumentPdf({
@@ -1265,7 +1274,7 @@ serve(async (req) => {
     const userGreeting = firstName ? `Dear ${escapeHtml(firstName)},` : "Dear Registrant,";
     const userSubject =
       flow === "membership" && String(submission.membership_status ?? "") === "active"
-        ? "Your Northern Women Initiative Membership is Active"
+        ? `Your ${ORGANIZATION_FULL_NAME} Membership is Active`
         : flow === "membership" && String(submission.payment_status ?? "") === "pending_verification"
           ? "NWI Membership Payment Receipt Received"
           : flow === "event"

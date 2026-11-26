@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, ArrowRight, CheckCircle2, GraduationCap, Handshake, Lightbulb, Network, Users } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,6 +37,7 @@ const emptyPaymentSettings:MembershipPaymentSettings = {bank_name:"",account_nam
 
 export default function BecomeAMember() {
   const { toast } = useToast();
+  const prefersReducedMotion = useReducedMotion();
   const [step,setStep] = useState(1);
   const [form,setForm] = useState<MembershipFormData>(initialMembershipForm);
   const [submitting,setSubmitting] = useState(false);
@@ -106,21 +108,38 @@ export default function BecomeAMember() {
     else toast({title:"Payment receipt submitted",description:"NWI will verify your transfer and update your membership."});
   };
   return <Layout>
-    <section className="bg-gradient-hero py-16 md:py-20"><div className="container-section max-w-5xl">
-      <p className="text-sm font-semibold uppercase tracking-wider text-secondary">NWI annual membership</p>
-      <h1 className="mt-3 text-4xl font-serif font-bold text-primary-foreground md:text-5xl">Grow, Connect, Learn and Build Together</h1>
-      <p className="mt-5 max-w-3xl text-lg leading-relaxed text-primary-foreground/90">Join the Northern Women Initiative membership community and access mentorship, business development, networking, collaboration and opportunities for growth.</p>
-      <div className="mt-8 flex flex-wrap gap-3"><Button variant="gold" size="lg" asChild><a href="#membership-benefits">Explore Membership</a></Button><Button variant="heroOutline" size="lg" asChild><a href="#membership-application">Register as a Member</a></Button></div>
-    </div></section>
+    <section className="bg-gradient-hero py-20">
+      <div className="container-section">
+        <div className="max-w-3xl">
+          <span className="text-secondary text-sm font-medium uppercase tracking-wider">Become a Member</span>
+          <h1 className="mt-3 mb-6 font-serif text-4xl font-bold text-primary-foreground md:text-5xl">Grow, Connect, Learn and Build Together</h1>
+          <p className="text-lg text-primary-foreground/90">Join the Northern Women Initiative membership community and access mentorship, business development, networking, collaboration and opportunities for growth.</p>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Button variant="gold" size="lg" asChild><a href="#membership-benefits">Explore Membership</a></Button>
+            <Button variant="heroOutline" size="lg" asChild><a href="#membership-application">Register as a Member</a></Button>
+          </div>
+        </div>
+      </div>
+    </section>
     <section id="membership-benefits" className="section-padding bg-background"><div className="container-section">
       <div className="mx-auto max-w-3xl text-center"><h2 className="text-3xl font-serif font-bold md:text-4xl">What membership includes</h2><p className="mt-4 text-muted-foreground">The membership package includes the following programme benefits.</p></div>
-      <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">{benefits.map(({icon:Icon,title,description})=><article key={title} className="rounded-2xl border border-border bg-card p-6 shadow-card"><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Icon size={22}/></div><h3 className="font-serif text-lg font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p></article>)}</div>
+      <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {benefits.map(({icon:Icon,title,description},index)=><motion.article
+          key={title}
+          className="rounded-2xl border border-border bg-card p-6 shadow-card"
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }}
+          whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ duration: 0.72, delay: prefersReducedMotion ? 0 : (index % 3) * 0.1, ease: "easeOut" }}
+          whileHover={prefersReducedMotion ? undefined : { y: -5, transition: { duration: 0.35, ease: "easeOut" } }}
+        ><div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><Icon size={22}/></div><h3 className="font-serif text-lg font-semibold">{title}</h3><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{description}</p></motion.article>)}
+      </div>
     </div></section>
     <section className="section-padding bg-muted"><div className="container-section"><h2 className="text-center text-3xl font-serif font-bold">Annual membership fees</h2><div className="mx-auto mt-8 grid max-w-3xl gap-5 sm:grid-cols-2">
-      <div className="rounded-2xl border border-border bg-card p-7 text-center"><p className="text-sm font-semibold uppercase text-muted-foreground">New member</p><p className="mt-3 text-4xl font-bold text-primary">{money(40000)}</p><p className="mt-2 text-sm text-muted-foreground">One-year membership</p></div>
-      <div className="rounded-2xl border border-border bg-card p-7 text-center"><p className="text-sm font-semibold uppercase text-muted-foreground">Existing member renewal</p><p className="mt-3 text-4xl font-bold text-primary">{money(30000)}</p><p className="mt-2 text-sm text-muted-foreground">Renewal for a membership year</p></div>
+      <motion.div className="rounded-2xl border border-border bg-card p-7 text-center shadow-card" initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }} whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.72, ease: "easeOut" }} whileHover={prefersReducedMotion ? undefined : { y: -5, transition: { duration: 0.35, ease: "easeOut" } }}><p className="text-sm font-semibold uppercase text-muted-foreground">New member</p><p className="mt-3 text-4xl font-bold text-primary">{money(40000)}</p><p className="mt-2 text-sm text-muted-foreground">One-year membership</p></motion.div>
+      <motion.div className="rounded-2xl border border-border bg-card p-7 text-center shadow-card" initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }} whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.72, delay: prefersReducedMotion ? 0 : 0.12, ease: "easeOut" }} whileHover={prefersReducedMotion ? undefined : { y: -5, transition: { duration: 0.35, ease: "easeOut" } }}><p className="text-sm font-semibold uppercase text-muted-foreground">Existing member renewal</p><p className="mt-3 text-4xl font-bold text-primary">{money(30000)}</p><p className="mt-2 text-sm text-muted-foreground">Renewal for a membership year</p></motion.div>
     </div><p className="mx-auto mt-6 max-w-3xl text-center text-sm text-muted-foreground">Membership operates from January to December and expires on 31 December of the selected year, even where registration occurs later.</p></div></section>
-    <section className="section-padding bg-background"><div className="container-section"><h2 className="text-center text-3xl font-serif font-bold">NWI organisational activities</h2><p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">These are organisational activities and possible participation opportunities, not guaranteed membership entitlements.</p><div className="mt-8 grid gap-5 md:grid-cols-3">{activities.map(([title,description])=><article key={title} className="rounded-2xl border border-border bg-card p-6"><h3 className="font-serif text-xl font-semibold">{title}</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p></article>)}</div></div></section>
+    <section className="section-padding bg-background"><div className="container-section"><h2 className="text-center text-3xl font-serif font-bold">NWI organisational activities</h2><p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">These are organisational activities and possible participation opportunities, not guaranteed membership entitlements.</p><div className="mt-8 grid gap-5 md:grid-cols-3">{activities.map(([title,description],index)=><motion.article key={title} className="rounded-2xl border border-border bg-card p-6 shadow-card" initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }} whileInView={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.2 }} transition={{ duration: 0.72, delay: prefersReducedMotion ? 0 : (index % 3) * 0.1, ease: "easeOut" }} whileHover={prefersReducedMotion ? undefined : { y: -5, transition: { duration: 0.35, ease: "easeOut" } }}><h3 className="font-serif text-xl font-semibold">{title}</h3><p className="mt-3 text-sm leading-relaxed text-muted-foreground">{description}</p></motion.article>)}</div></div></section>
     <section id="membership-application" className="section-padding scroll-mt-24 bg-muted"><div className="container-section max-w-4xl">
       <div className="mb-8 text-center"><h2 className="text-3xl font-serif font-bold">Membership application</h2><p className="mt-3 text-muted-foreground">Complete the four steps below. Your progress is kept while navigating between steps.</p></div>
       {submitted ? <div className="rounded-2xl border border-border bg-card p-6 shadow-card sm:p-8">
