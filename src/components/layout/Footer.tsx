@@ -72,17 +72,17 @@ const Footer = () => {
             </div>
             <form
               onSubmit={handleSubscribe}
-              className="flex gap-3 w-full md:w-auto"
+              className="flex w-full flex-col gap-3 md:w-auto md:flex-row"
             >
               <Input
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                className="bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 min-w-[250px]"
+                className="w-full min-w-0 bg-primary-foreground/10 border-primary-foreground/20 text-primary-foreground placeholder:text-primary-foreground/50 md:min-w-[250px] md:w-auto"
                 required
               />
-              <Button variant="gold" type="submit" disabled={loading}>
+              <Button variant="gold" type="submit" className="w-full md:w-auto" disabled={loading}>
                 {loading ? "Subscribing..." : "Subscribe"}
               </Button>
             </form>
