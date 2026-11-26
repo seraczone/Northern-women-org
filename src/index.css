@@ -174,14 +174,16 @@
     @apply relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-current after:transition-all after:duration-300 hover:after:w-full;
   }
 
-  .membership-shine {
+  .button-shine,
+  button {
     position: relative;
     isolation: isolate;
     overflow: hidden;
     transition: filter 300ms ease, box-shadow 300ms ease;
   }
 
-  .membership-shine::after {
+  .button-shine::after,
+  button::after {
     position: absolute;
     z-index: 1;
     inset: -20% auto -20% -45%;
@@ -190,10 +192,11 @@
     pointer-events: none;
     transform: skewX(-22deg);
     background: linear-gradient(90deg, transparent, hsl(0 0% 100% / 0.72), transparent);
-    animation: membership-button-shine 4.2s ease-in-out infinite;
+    animation: membership-button-shine 6.2s ease-in-out infinite;
   }
 
-  .membership-shine:hover:not(:disabled) {
+  .button-shine:hover:not(:disabled):not([aria-disabled="true"]),
+  button:hover:not(:disabled) {
     filter: brightness(1.2);
     box-shadow: 0 0 22px hsl(var(--secondary) / 0.42);
   }
@@ -205,7 +208,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .membership-shine::after {
+  .button-shine::after,
+  button::after {
     animation: none;
   }
 }

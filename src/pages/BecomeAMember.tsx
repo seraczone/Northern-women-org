@@ -125,7 +125,7 @@ export default function BecomeAMember() {
           <motion.p className="text-lg text-primary-foreground/90" initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }} animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.85, delay: prefersReducedMotion ? 0 : 0.24, ease: "easeOut" }}>Join the Northern Women Initiative membership community and access mentorship, business development, networking, collaboration and opportunities for growth.</motion.p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button variant="gold" size="lg" asChild><a href="#membership-benefits">Explore Membership</a></Button>
-            <Button variant="heroOutline" size="lg" className="membership-shine" asChild><a href="#membership-application">Register as a Member</a></Button>
+            <Button variant="heroOutline" size="lg" asChild><a href="#membership-application">Register as a Member</a></Button>
           </div>
         </div>
       </div>
@@ -187,7 +187,7 @@ export default function BecomeAMember() {
             {receiptFile && <p className="text-xs text-muted-foreground">Selected: {receiptFile.name}</p>}
           </div>
         </div>}
-        <div className="mt-8 flex flex-wrap justify-between gap-3 border-t border-border pt-6">{step>1?<Button type="button" variant="outline" onClick={()=>setStep(current=>current-1)}><ArrowLeft size={16}/> Back</Button>:<span/>}{step<4?<Button type="button" onClick={next}>Continue <ArrowRight size={16}/></Button>:<Button type="submit" className="membership-shine" disabled={submitting||!form.terms_accepted||!form.conduct_accepted||!form.privacy_accepted}>{submitting?"Submitting...":"Submit membership application"} <ArrowRight size={16}/></Button>}</div>
+        <div className="mt-8 flex flex-wrap justify-between gap-3 border-t border-border pt-6">{step>1?<Button type="button" variant="outline" onClick={()=>setStep(current=>current-1)}><ArrowLeft size={16}/> Back</Button>:<span/>}{step<4?<Button type="button" onClick={next}>Continue <ArrowRight size={16}/></Button>:<Button type="submit" disabled={submitting||!form.terms_accepted||!form.conduct_accepted||!form.privacy_accepted}>{submitting?"Submitting...":"Submit membership application"} <ArrowRight size={16}/></Button>}</div>
       </form>}
     </div></section>
     <section className="section-padding bg-background"><div className="container-section max-w-4xl"><h2 className="text-2xl font-serif font-bold">Membership FAQs</h2><div className="mt-5 divide-y divide-border rounded-2xl border border-border px-6">{[
