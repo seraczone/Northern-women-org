@@ -3,18 +3,15 @@ export type MembershipType = "new" | "renewal";
 export type MembershipFormData = {
   first_name: string;
   last_name: string;
-  date_of_birth: string;
   phone: string;
   email: string;
-  occupation: string;
   business_name: string;
   business_category: string;
-  residential_address: string;
-  local_government: string;
-  town_city: string;
+  business_category_other: string;
   state: string;
   country: string;
   membership_type: MembershipType;
+  membership_code: string;
   membership_year: string;
   terms_accepted: boolean;
   conduct_accepted: boolean;
@@ -28,6 +25,7 @@ export type MembershipPaymentSettings = {
   payment_instructions: string;
 };
 
+export const MEMBERSHIP_YEAR = 2027;
 export const MEMBERSHIP_POLICY_VERSION = "2026-11-21";
 export const MEMBERSHIP_RECEIPTS_BUCKET = "membership-payment-receipts";
 export const MEMBERSHIP_RECEIPT_MAX_SIZE = 5 * 1024 * 1024;
@@ -40,19 +38,16 @@ export const MEMBERSHIP_RECEIPT_TYPES = [
 export const initialMembershipForm = (): MembershipFormData => ({
   first_name: "",
   last_name: "",
-  date_of_birth: "",
   phone: "",
   email: "",
-  occupation: "",
   business_name: "",
   business_category: "",
-  residential_address: "",
-  local_government: "",
-  town_city: "",
+  business_category_other: "",
   state: "",
-  country: "Nigeria",
+  country: "",
   membership_type: "new",
-  membership_year: String(new Date().getFullYear()),
+  membership_code: "",
+  membership_year: String(MEMBERSHIP_YEAR),
   terms_accepted: false,
   conduct_accepted: false,
   privacy_accepted: false,

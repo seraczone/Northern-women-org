@@ -95,10 +95,16 @@ async function notifyMembershipSubmission({
       flow: "membership",
       wasUpdate,
       submission: {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim(),
         email: formData.email.trim().toLowerCase(),
         phone: formData.phone.trim(),
+        business_name: formData.business_name.trim(),
+        business_category: formData.business_category === "Other"
+          ? formData.business_category_other.trim()
+          : formData.business_category,
+        state: formData.state,
+        country: formData.country.trim(),
         membership_type: formData.membership_type,
         membership_year: year,
         fee,
@@ -139,12 +145,24 @@ export async function submitMembershipApplication({
   const uploadToken = crypto.randomUUID();
   const year = Number(formData.membership_year);
   const fee = getMembershipFee(formData.membership_type);
+  const { business_category_other: businessCategoryOther, ...applicationFields } = formData;
 
   const { error: insertError } = await supabase.from("membership_applications").insert({
-    ...formData,
+    ...applicationFields,
+    first_name: formData.first_name.trim(),
+    last_name: formData.last_name.trim(),
     email: formData.email.trim().toLowerCase(),
+    date_of_birth: null,
+    occupation: null,
+    residential_address: null,
+    local_government: null,
+    town_city: null,
     business_name: toNullableString(formData.business_name),
-    business_category: toNullableString(formData.business_category),
+    business_category: toNullableString(
+      formData.business_category === "Other"
+        ? businessCategoryOther
+        : formData.business_category,
+    ),
     id: applicationId,
     receipt_upload_token: uploadToken,
     membership_year: year,
