@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, CheckCircle2, GraduationCap, Handshake, Lightbulb, Network, Users } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -125,12 +126,45 @@ const money = (amount:number) => new Intl.NumberFormat("en-NG",{style:"currency"
 
 const emptyPaymentSettings:MembershipPaymentSettings = {bank_name:"",account_name:"",account_number:"",payment_instructions:""};
 
-export default function BecomeAMember() {
+const membershipFaqs = [
+  ["Who can join?", "Women who support the mission and values of Northern Women Initiative may apply."],
+  ["What are the fees?", "New membership is ₦40,000 and existing member renewal is ₦30,000."],
+  ["How long does membership last?", "Membership operates January through December and expires on 31 December of the selected year."],
+  ["Does late registration extend membership?", "No. Late registration does not add another twelve months."],
+  ["Are payments refundable?", "No. Membership payments are strictly non-refundable, including where a member does not attend."],
+  ["Are additional opportunities guaranteed?", "No. The listed membership package defines the benefits. Additional sponsorships, privileges and partnerships are not guaranteed."],
+  ["How do I renew?", "Select Existing Member Renewal in the application and complete the renewal for the relevant membership year."],
+] as const;
+
+function MembershipFaqSection() {
+  return (
+    <section className="section-padding bg-background">
+      <div className="container-section max-w-4xl">
+        <h2 className="text-2xl font-serif font-bold">Membership FAQs</h2>
+        <div className="mt-5 divide-y divide-border rounded-2xl border border-border px-6">
+          {membershipFaqs.map(([question, answer]) => (
+            <details key={question} className="py-4">
+              <summary className="cursor-pointer font-semibold">{question}</summary>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{answer}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+type BecomeAMemberProps = {
+  applicationOnly?: boolean;
+};
+
+export default function BecomeAMember({ applicationOnly = false }: BecomeAMemberProps) {
   const { toast } = useToast();
   const prefersReducedMotion = useReducedMotion();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [step,setStep] = useState(1);
   const [overviewAccepted, setOverviewAccepted] = useState(false);
-  const [applicationStarted, setApplicationStarted] = useState(false);
   const [form,setForm] = useState<MembershipFormData>(initialMembershipForm);
   const [submitting,setSubmitting] = useState(false);
   const [verifyingMembershipCode, setVerifyingMembershipCode] = useState(false);
@@ -142,6 +176,8 @@ export default function BecomeAMember() {
   const [paymentReference,setPaymentReference] = useState("");
   const [uploadingReceipt,setUploadingReceipt] = useState(false);
   const [receiptSubmitted,setReceiptSubmitted] = useState(false);
+  const membershipOverviewAcknowledged =
+    (location.state as { membershipAcknowledged?: boolean } | null)?.membershipAcknowledged === true;
 
   useEffect(() => {
     let active = true;
@@ -226,17 +262,21 @@ export default function BecomeAMember() {
     if(result.notificationError) toast({title:"Receipt submitted; email notification failed",description:"NWI can still review your payment receipt.",variant:"destructive"});
     else toast({title:"Payment receipt submitted",description:"NWI will verify your transfer and update your membership."});
   };
+  if (applicationOnly && !membershipOverviewAcknowledged) {
+    return <Navigate to="/become-a-member" replace />;
+  }
+
   return <Layout>
+    {!applicationOnly && <>
     <section className="bg-gradient-hero py-20">
       <div className="container-section">
         <div className="max-w-3xl">
-          <motion.span className="text-secondary text-sm font-medium uppercase tracking-wider" initial={prefersReducedMotion ? false : { opacity: 0, y: 12 }} animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.75, ease: "easeOut" }}>Become a Member</motion.span>
-          <motion.h1 className="mt-3 mb-6 font-serif text-4xl font-bold text-primary-foreground md:text-5xl" initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }} animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.85, delay: prefersReducedMotion ? 0 : 0.12, ease: "easeOut" }}>Welcome to Northern Women Initiative (NWI)</motion.h1>
-          <motion.p className="text-lg leading-relaxed text-primary-foreground/90" initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }} animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.85, delay: prefersReducedMotion ? 0 : 0.24, ease: "easeOut" }}>The Northern Women Initiative (NWI) is committed to empowering women, supporting business growth, encouraging meaningful connections and creating opportunities for personal and professional development.</motion.p>
-          <motion.p className="mt-4 text-lg leading-relaxed text-primary-foreground/90" initial={prefersReducedMotion ? false : { opacity: 0, y: 18 }} animate={prefersReducedMotion ? undefined : { opacity: 1, y: 0 }} transition={{ duration: 0.85, delay: prefersReducedMotion ? 0 : 0.32, ease: "easeOut" }}>The NWI One-Year Membership Programme is designed to build a structured and supportive community where women can learn, grow, collaborate, access mentorship and benefit from business development opportunities.</motion.p>
+          <span className="text-secondary text-sm font-medium uppercase tracking-wider">Become a Member</span>
+          <h1 className="mt-3 mb-6 font-serif text-4xl font-bold text-primary-foreground md:text-5xl">Welcome to Northern Women Initiative (NWI)</h1>
+          <p className="text-lg leading-relaxed text-primary-foreground/90">The Northern Women Initiative (NWI) is committed to empowering women, supporting business growth, encouraging meaningful connections and creating opportunities for personal and professional development.</p>
+          <p className="mt-4 text-lg leading-relaxed text-primary-foreground/90">The NWI One-Year Membership Programme is designed to build a structured and supportive community where women can learn, grow, collaborate, access mentorship and benefit from business development opportunities.</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button variant="gold" size="lg" asChild><a href="#membership-benefits">Explore Membership</a></Button>
-            <Button variant="heroOutline" size="lg" asChild><a href="#membership-acknowledgement">Register as a Member</a></Button>
+            <Button variant="gold" size="lg" asChild><a href="#membership-benefits">Become a Member</a></Button>
           </div>
         </div>
       </div>
@@ -282,20 +322,29 @@ export default function BecomeAMember() {
         <label className="mt-4 flex cursor-pointer items-start gap-3 text-sm leading-relaxed">
           <input type="checkbox" checked={overviewAccepted} onChange={(event) => {
             setOverviewAccepted(event.target.checked);
-            if (!event.target.checked) setApplicationStarted(false);
           }} className="mt-1 h-4 w-4 shrink-0 accent-primary" />
           <span>I confirm that I have read and understood the NWI membership overview, including the programme, its offerings, benefits and opportunities.</span>
         </label>
         <div className="mt-6 flex justify-center">
           <Button type="button" disabled={!overviewAccepted} onClick={() => {
             if (!overviewAccepted) return;
-            setApplicationStarted(true);
-            window.setTimeout(() => document.getElementById("membership-application")?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
-          }}>Proceed to Membership Application <ArrowRight size={16} /></Button>
+            navigate("/membership-application", { state: { membershipAcknowledged: true } });
+          }}>Proceed to Application <ArrowRight size={16} /></Button>
         </div>
       </div>
     </div></section>
-    {applicationStarted && <section id="membership-application" className="section-padding scroll-mt-24 bg-muted"><div className="container-section max-w-4xl">
+    </>}
+    {applicationOnly && <>
+      <section className="bg-gradient-hero py-16 md:py-20">
+        <div className="container-section">
+          <Link to="/become-a-member" className="mb-5 inline-flex items-center gap-2 text-sm font-medium text-primary-foreground/80 transition-colors hover:text-primary-foreground">
+            <ArrowLeft size={16} /> Back to Membership Overview
+          </Link>
+          <h1 className="text-3xl font-serif font-bold text-primary-foreground sm:text-4xl">Membership Application</h1>
+          <p className="mt-3 max-w-2xl text-primary-foreground/90">Complete the four steps below to apply for NWI membership.</p>
+        </div>
+      </section>
+    <section id="membership-application" className="section-padding scroll-mt-24 bg-muted"><div className="container-section max-w-4xl">
       <div className="mb-8 text-center"><h2 className="text-3xl font-serif font-bold">Membership application</h2><p className="mt-3 text-muted-foreground">Complete the four steps below. Your progress is kept while navigating between steps.</p></div>
       {submitted ? <div className="rounded-2xl border border-border bg-card p-6 shadow-card sm:p-8">
         <div className="text-center"><CheckCircle2 className="mx-auto h-14 w-14 text-primary"/><h3 className="mt-4 text-2xl font-serif font-bold">Application received</h3><p className="mx-auto mt-3 max-w-xl text-muted-foreground">Your application has been saved. Your annual fee is {money(fee)} for {year}, expiring on {expiry}. Your membership is not active yet and your NWI Membership ID will be assigned after payment verification and approval.</p></div>
@@ -346,8 +395,10 @@ export default function BecomeAMember() {
         </div>}
         <div className="mt-8 flex flex-wrap justify-between gap-3 border-t border-border pt-6">{step>1?<Button type="button" variant="outline" onClick={()=>setStep(current=>current-1)}><ArrowLeft size={16}/> Back</Button>:<span/>}{step<4?<Button type="button" onClick={()=>void next()} disabled={verifyingMembershipCode}>{verifyingMembershipCode?"Verifying membership code...":"Continue"} <ArrowRight size={16}/></Button>:<Button type="submit" disabled={submitting||!form.terms_accepted||!form.conduct_accepted||!form.privacy_accepted}>{submitting?"Submitting...":"Submit membership application"} <ArrowRight size={16}/></Button>}</div>
       </form>}
-    </div></section>}
-    <section className="section-padding bg-background"><div className="container-section max-w-4xl"><h2 className="text-2xl font-serif font-bold">Membership FAQs</h2><div className="mt-5 divide-y divide-border rounded-2xl border border-border px-6">{[
+    </div></section>
+    <MembershipFaqSection />
+    </>}
+    {!applicationOnly && <section className="section-padding bg-background"><div className="container-section max-w-4xl"><h2 className="text-2xl font-serif font-bold">Membership FAQs</h2><div className="mt-5 divide-y divide-border rounded-2xl border border-border px-6">{[
       ["Who can join?","Women who support the mission and values of Northern Women Initiative may apply."],
       ["What are the fees?","New membership is ₦40,000 and existing member renewal is ₦30,000."],
       ["How long does membership last?","Membership operates January through December and expires on 31 December of the selected year."],
@@ -355,6 +406,6 @@ export default function BecomeAMember() {
       ["Are payments refundable?","No. Membership payments are strictly non-refundable, including where a member does not attend."],
       ["Are additional opportunities guaranteed?","No. The listed membership package defines the benefits. Additional sponsorships, privileges and partnerships are not guaranteed."],
       ["How do I renew?","Select Existing Member Renewal in the application and complete the renewal for the relevant membership year."],
-    ].map(([question,answer])=><details key={question} className="py-4"><summary className="cursor-pointer font-semibold">{question}</summary><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{answer}</p></details>)}</div></div></section>
+    ].map(([question,answer])=><details key={question} className="py-4"><summary className="cursor-pointer font-semibold">{question}</summary><p className="mt-2 text-sm leading-relaxed text-muted-foreground">{answer}</p></details>)}</div></div></section>}
   </Layout>;
 }

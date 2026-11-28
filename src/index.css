@@ -146,6 +146,55 @@
     background: linear-gradient(135deg, hsl(345 45% 30%) 0%, hsl(345 50% 22%) 100%);
   }
 
+  @keyframes hero-content-rise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .bg-gradient-hero .container-section > span,
+  .bg-gradient-hero .container-section > div > span {
+    animation: hero-content-rise 850ms ease-out both;
+  }
+
+  .bg-gradient-hero .container-section > h1,
+  .bg-gradient-hero .container-section > div > h1 {
+    animation: hero-content-rise 850ms 120ms ease-out both;
+  }
+
+  .bg-gradient-hero .container-section > p,
+  .bg-gradient-hero .container-section > div > p {
+    animation: hero-content-rise 850ms 240ms ease-out both;
+  }
+
+  .bg-gradient-hero .container-section > div > p:nth-of-type(2) {
+    animation-delay: 320ms;
+  }
+
+  .bg-gradient-hero .container-section a,
+  .bg-gradient-hero .container-section button {
+    animation: hero-content-rise 850ms 360ms ease-out both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bg-gradient-hero .container-section > span,
+    .bg-gradient-hero .container-section > div > span,
+    .bg-gradient-hero .container-section > h1,
+    .bg-gradient-hero .container-section > div > h1,
+    .bg-gradient-hero .container-section > p,
+    .bg-gradient-hero .container-section > div > p,
+    .bg-gradient-hero .container-section a,
+    .bg-gradient-hero .container-section button {
+      animation: none;
+    }
+  }
+
   .bg-gradient-warm {
     background: linear-gradient(180deg, hsl(40 33% 98%) 0%, hsl(35 30% 93%) 100%);
   }
